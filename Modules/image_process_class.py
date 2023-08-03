@@ -11,11 +11,11 @@ class Plane_wave:
     py = None
     params = ["Period", "Phase", "Amp.", "Angle"]
 
-    def rewrite(self, per, ph, amp, angle):
-        self.period = per
-        self.phase = ph
-        self.amp = amp
-        self.angle = angle
+    def rewrite(self, params):
+        self.period = params[0]
+        self.phase = params[1]
+        self.amp = params[2]
+        self.angle = params[3]
 
     def getval(self, p_name):
         if p_name == "Period":
@@ -35,69 +35,57 @@ class Plane_wave:
         print("angle:" + str(self.angle))
 
     def run(self):
+        k = 2 * np.pi / self.period
+        kx = k * np.cos(-self.angle / 180 * np.pi)
+        ky = k * np.sin(-self.angle / 180 * np.pi)
         X = np.arange(0, self.px, 1)
         Y = np.arange(0, self.py, 1)
         XX, YY = np.meshgrid(X, Y)
-
-        data = np.sin(XX + YY)
+        data = np.sin(kx * XX + ky * YY) * self.amp
         return data
 
 
 class Random_offset:
     name = "Random offset"
     amp = None
-    var = None
-    params = ["Amp.", "Var."]
+    params = ["Amp."]
 
-    def rewrite(self, amp, var):
-        self.amp = amp
-        self.var = var
+    def rewrite(self, params):
+        self.amp = params[0]
 
     def getval(self, p_name):
         if p_name == "Amp.":
             return self.amp
-        elif p_name == "Var.":
-            return self.var
 
     def print_all(self):
         print(self.name)
         print("Amp.:" + str(self.amp))
-        print("Var.:" + str(self.var))
 
     def run(self):
-        X = np.arange(0, self.px, 1)
-        Y = np.arange(0, self.py, 1)
-        XX, YY = np.meshgrid(X, Y)
-
-        data = np.sin(XX + YY)
+        noise = np.random.rand(self.py) * self.amp
+        data = np.zeros((self.px, self.py))
+        data[:] = noise
+        data = data.T
         return data
 
 
 class Noise:
     name = "Noise"
     amp = None
-    var = None
-    params = ["Amp.", "Var."]
+    params = ["Amp."]
 
-    def rewrite(self, amp, var):
-        self.amp = amp
-        self.var = var
+    def rewrite(self, params):
+        self.amp = params[0]
 
     def getval(self, p_name):
         if p_name == "Amp.":
             return self.amp
-        elif p_name == "Var.":
-            return self.var
 
     def print_all(self):
         print(self.name)
         print("Amp.:" + str(self.amp))
-        print("Var.:" + str(self.var))
 
     def run(self):
-        X = np.arange(0, self.px, 1)
-        Y = np.arange(0, self.py, 1)
-        XX, YY = np.meshgrid(X, Y)
-
-        data = np.sin(XX + YY)
+        noise = np.random.rand(self.px * self.py) * self.amp
+        data = noise.reshape([self.py, self.px])
         return data

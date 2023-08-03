@@ -327,24 +327,14 @@ class Window(ttk.Frame):
 
     def rewrite_process(self):
         for i in range(len(self.process_vals)):
-            if self.process_vals[i][0] == "Plane wave":
-                self.processes[i].rewrite(
-                    float(self.process_vals[i][1].get()),
-                    float(self.process_vals[i][2].get()),
-                    float(self.process_vals[i][3].get()),
-                    float(self.process_vals[i][4].get()),
-                )
-
-            elif self.process_vals[i][0] == "Random offset":
-                self.processes[i].rewrite(
-                    float(self.process_vals[i][1].get()),
-                    float(self.process_vals[i][2].get()),
-                )
-            elif self.process_vals[i][0] == "Noise":
-                self.processes[i].rewrite(
-                    float(self.process_vals[i][1].get()),
-                    float(self.process_vals[i][2].get()),
-                )
+            params = []
+            count = 0
+            for vals in self.process_vals[i]:
+                if count == 0:
+                    count = 1
+                else:
+                    params.append(float(vals.get()))
+            self.processes[i].rewrite(params)
 
     def run(self):
         self.mainloop()

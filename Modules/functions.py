@@ -10,16 +10,14 @@ class functions:
     def image_formation(self):
         px = int(self.pix_x_entry.get())
         py = int(self.pix_y_entry.get())
-
-        X = np.arange(0, px, 1)
-        Y = np.arange(0, py, 1)
-        XX, YY = np.meshgrid(X, Y)
-        image_rec = []
+        image_rec = [np.zeros((px, py))]
         for i in self.processes:
             i.px = px
             i.py = py
             image_rec.append(i.run())
-            i.print_all()
+        self.image = np.sum(image_rec, axis=0)
+        self.image = self.normarize(self.image)
+        cv2.imshow("Image", self.image)
         """
         for pro in self.processes:
             if pro[0] == "Plane wave":
@@ -30,4 +28,14 @@ class functions:
 
         data = np.sin(XX + YY)
         cv2.imshow("test", data)
+
         """
+
+    def normarize(self, image):
+        val_min = np.min(image)
+        val_max = np.max(image)
+        diff = val_max - val_min
+        if diff == 0:
+            return image
+        new_image = (image - val_min) / diff
+        return new_image
