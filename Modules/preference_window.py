@@ -11,7 +11,7 @@ class Window(ttk.Frame):
     def __init__(self, master) -> None:
         super().__init__(master, padding=2)
         self.master = master
-        master.geometry("655x520")
+        master.geometry("655x670")
         master.title("Image tester")
         self.processes = []
         self.create_frame_header()
@@ -20,7 +20,9 @@ class Window(ttk.Frame):
         self.create_widgets_process()
         self.create_widgets_image_form()
         self.create_widgets_image_process()
-        self.create_layouts()
+        self.create_widgets_record()
+        self.create_layouts_image()
+        self.create_layouts_process()
 
     def init_setting(self):
         self.num_process = len(self.processes)
@@ -193,9 +195,6 @@ class Window(ttk.Frame):
         self.offset_amp_label = tk.Label(self.master, text="Amp.")
         self.offset_amp_entry = tk.Entry(self.master, width=6)
         self.offset_amp_entry.insert(tk.END, 1)
-        self.offset_val_label = tk.Label(self.master, text="Var.")
-        self.offset_val_entry = tk.Entry(self.master, width=6)
-        self.offset_val_entry.insert(tk.END, 1)
         self.offset_btn = tk.Button(
             self.master,
             text="Add",
@@ -208,9 +207,6 @@ class Window(ttk.Frame):
         self.noise_amp_label = tk.Label(self.master, text="Amp.")
         self.noise_amp_entry = tk.Entry(self.master, width=6)
         self.noise_amp_entry.insert(tk.END, 1)
-        self.noise_val_label = tk.Label(self.master, text="Var.")
-        self.noise_val_entry = tk.Entry(self.master, width=6)
-        self.noise_val_entry.insert(tk.END, 1)
         self.noise_btn = tk.Button(
             self.master,
             text="Add",
@@ -234,11 +230,54 @@ class Window(ttk.Frame):
             width=25,
         )
 
+
     def create_widgets_image_process(self):
-        # rotation, FFT, drift
+        self.smooth_label = tk.Label(self.master, text="Smooth")
+        self.smooth_entry = tk.Entry(self.master, width=6)
+        self.smooth_entry.insert(tk.END, 0)
+        #
+        self.rot_label = tk.Label(self.master, text="Rotation")
+        self.rot_entry = tk.Entry(self.master, width=6)
+        self.rot_entry.insert(tk.END, 0)
+        #
+        self.resize_label = tk.Label(self.master, text="Resize")
+        self.resize_x_label = tk.Label(self.master, text="x")
+        self.resize_y_label = tk.Label(self.master, text="y")
+        self.resize_x_entry = tk.Entry(self.master, width=6)
+        self.resize_x_entry.insert(tk.END, 256)
+        self.resize_y_entry = tk.Entry(self.master, width=6)
+        self.resize_y_entry.insert(tk.END, 256)
+        #
+        self.drift_label = tk.Label(self.master, text="Drift")
+        self.drift_x_label = tk.Label(self.master, text="x (pix/scan)")
+        self.drift_y_label = tk.Label(self.master, text="y (pix/scan)")
+        self.drift_x_entry = tk.Entry(self.master, width=6)
+        self.drift_x_entry.insert(tk.END, 0)
+        self.drift_y_entry = tk.Entry(self.master, width=6)
+        self.drift_y_entry.insert(tk.END, 0) 
+        #
+        self.image_process_btn = tk.Button(
+            self.master,
+            text="Processing",
+            command=self.image_process_clicked,
+            height=6,
+            width=15,
+        )
+        #
+        self.FFT_label = tk.Label(self.master, text="FFT")
+        self.FFT_btn = tk.Button(
+            self.master,
+            text="FFT",
+            command=self.FFT_clicked,
+            height=3,
+            width=15,
+        )
+
+    def create_widgets_record(self):
         pass
 
-    def create_layouts(self):
+
+    def create_layouts_image(self):
         y_1 = 280
         y_2 = y_1 + 40
         y_3 = y_2 + 30
@@ -276,16 +315,55 @@ class Window(ttk.Frame):
         self.offset_label.place(x=x_1, y=y_3)
         self.offset_amp_label.place(x=x_2, y=y_3)
         self.offset_amp_entry.place(x=x_3, y=y_3)
-        self.offset_val_label.place(x=x_4, y=y_3)
-        self.offset_val_entry.place(x=x_5, y=y_3)
         self.offset_btn.place(x=x_btn, y=y_3)
         #
         self.noise_label.place(x=x_1, y=y_4)
         self.noise_amp_label.place(x=x_2, y=y_4)
         self.noise_amp_entry.place(x=x_3, y=y_4)
-        self.noise_val_label.place(x=x_4, y=y_4)
-        self.noise_val_entry.place(x=x_5, y=y_4)
         self.noise_btn.place(x=x_btn, y=y_4)
+        #
+
+
+
+    def create_layouts_process(self):
+        y_1 = 420
+        y_2 = y_1 + 30
+        y_3 = y_2 + 30
+        y_4 = y_3 + 30
+        y_5 = y_4 + 30
+        x_1 = 20
+        x_2 = 120
+        x_3 = 170
+        x_4 = 220
+        x_5 = 270
+        x_6 = 320
+        x_7 = 370
+        x_8 = 420
+        x_9 = 470
+        x_btn = 520
+        self.smooth_label.place(x=x_1, y=y_1)
+        self.smooth_entry.place(x=x_2, y=y_1)
+        #
+        self.rot_label.place(x=x_1, y=y_2)
+        self.rot_entry.place(x=x_2, y=y_2)
+        #
+        #
+        self.resize_label.place(x=x_1, y=y_3)
+        self.resize_x_label.place(x=x_2, y=y_3)
+        self.resize_y_label.place(x=x_4, y=y_3)
+        self.resize_x_entry.place(x=x_3, y=y_3)
+        self.resize_y_entry.place(x=x_5, y=y_3)
+        #
+        self.drift_label.place(x=x_1, y=y_4)
+        self.drift_x_label.place(x=x_2, y=y_4)
+        self.drift_y_label.place(x=x_5 -30, y=y_4)
+        self.drift_x_entry.place(x=x_4-30, y=y_4)
+        self.drift_y_entry.place(x=x_7 -60, y=y_4)
+        #
+        self.image_process_btn.place(x = x_btn, y = y_1)
+        #
+        self.FFT_label.place(x=x_1, y=y_5)
+        self.FFT_btn.place(x = x_btn, y = y_5)
 
     def wave_add_clicked(self):
         var = Plane_wave()
@@ -299,20 +377,24 @@ class Window(ttk.Frame):
     def offset_add_clicked(self):
         var = Random_offset()
         var.amp = float(self.offset_amp_entry.get())
-        var.var = float(self.offset_val_entry.get())
         self.processes.append(var)
         self.update_process_w()
 
     def noise_add_clicked(self):
         var = Noise()
         var.amp = float(self.noise_amp_entry.get())
-        var.var = float(self.noise_val_entry.get())
         self.processes.append(var)
         self.update_process_w()
 
     def image_form_clicked(self):
         self.rewrite_process()
         self.image_formation()
+
+    def image_process_clicked(self):
+        pass
+
+    def FFT_clicked(self):
+        pass
 
     def update_process_w(self):
         self.create_frame_datalist()
