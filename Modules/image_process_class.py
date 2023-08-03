@@ -41,7 +41,7 @@ class Plane_wave:
         X = np.arange(0, self.px, 1)
         Y = np.arange(0, self.py, 1)
         XX, YY = np.meshgrid(X, Y)
-        data = np.sin(kx * XX + ky * YY) * self.amp
+        data = np.sin(kx * XX + ky * YY - self.phase) * self.amp
         return data
 
 
