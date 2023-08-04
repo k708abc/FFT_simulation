@@ -1,4 +1,7 @@
 import numpy as np
+from scipy import ndimage
+import cv2
+from scipy import signal
 
 
 class Plane_wave:
@@ -44,6 +47,27 @@ class Plane_wave:
         data = np.sin(kx * XX + ky * YY - self.phase) * self.amp
         return data
 
+    def rec(self):
+        return (
+            "Plane_wave:" + "\n\t"
+            "period "
+            + "\t"
+            + str(self.period)
+            + "\n\t"
+            + "phase:"
+            + "\t"
+            + str(self.phase)
+            + "\n\t"
+            + "Amplitude:"
+            + "\t"
+            + str(self.amp)
+            + "\n\t"
+            + "angle:"
+            + "\t"
+            + str(self.angle)
+            + "\n"
+        )
+
 
 class Random_offset:
     name = "Random offset"
@@ -68,6 +92,9 @@ class Random_offset:
         data = data.T
         return data
 
+    def rec(self):
+        return "Random_offset:" + "\n\t" + "Amplitude:" + "\t" + str(self.amp) + "\n"
+
 
 class Noise:
     name = "Noise"
@@ -89,3 +116,115 @@ class Noise:
         noise = np.random.rand(self.px * self.py) * self.amp
         data = noise.reshape([self.py, self.px])
         return data
+
+    def rec(self):
+        return "Random_offset:" + "\n\t" + "Amplitude:" + "\t" + str(self.amp) + "\n"
+
+
+class image_modifier:
+    def smoothing(self, image, val):
+        image_mod = ndimage.gaussian_filter(image, float(val))
+        return image_mod
+
+    def rotation(self, image, angle):
+        width, height = image.shape[1], image.shape[0]
+        center = (int(width / 2), int(height / 2))
+        affine_trans = cv2.getRotationMatrix2D(center, angle, 1)
+        image_mod = cv2.warpAffine(
+            image,
+            affine_trans,
+            (width, height),
+            flags=cv2.INTER_CUBIC,
+        )
+        return image_mod
+
+    def resize(self, image, val_x, val_y):
+        self.mod_image = cv2.resize(image, (val_x, val_y))
+        return image
+
+    def drift(self, image, val_x, val_y):
+        ps_x = len(image)
+        ps_y = len(image[0])
+        # b_val = self.prev_min
+        #
+        v11 = 1 + val_x / 2 / ps_y / ps_y
+        v12 = val_x / ps_y
+        v21 = val_y / 2 / ps_y / ps_x
+        v22 = 1 + val_y / ps_y
+        #
+        if v12 < 0:
+            x_shift = -v12 * ps_y
+        else:
+            x_shift = 0
+        mat = np.array([[v11, v12, x_shift], [v21, v22, 0]], dtype=np.float32)
+        affine_img = cv2.warpAffine(image, mat, (2 * ps_x, 2 * ps_y))
+        # calculate the edge of the image
+        ax = v11 * ps_x
+        ay = v21 * ps_x
+        bx = v12 * ps_y
+        by = v22 * ps_y
+        #
+        x0 = int(min(bx, 0) + x_shift)
+        y0 = int(min(ay, 0))
+        xmax = int(max(ax, bx, ax + bx) + x_shift)
+        ymax = int(max(by, by + ay, ay))
+        # crop the image
+        im_crop = affine_img[y0:ymax, x0:xmax]
+        return im_crop
+
+    def datatype_change(self, image):
+        maximum = image.max()
+        minimum = image.min()
+        if maximum == minimum:
+            image_mod = image * 255
+        else:
+            image_mod = (image - minimum) / (maximum - minimum) * 255
+        return image_mod.astype(np.uint8)
+
+    def subtraction(self, image):
+        minimum = np.min(image)
+        image_mod = image - minimum
+        return image_mod
+
+    def apply_window(self, target, window):
+        target_copy = np.copy(target)
+        if window == "Hann":
+            wfunc = signal.hann(target.shape[0])
+            wfunc2 = signal.hann(target.shape[1])
+        elif window == "Hamming":
+            wfunc = signal.hamming(target.shape[0])
+            wfunc2 = signal.hamming(target.shape[1])
+        elif window == "Blackman":
+            wfunc = signal.blackman(target.shape[0])
+            wfunc2 = signal.blackman(target.shape[1])
+        else:
+            wfunc = signal.boxcar(target.shape[0])
+            wfunc2 = signal.boxcar(target.shape[1])
+        for i in range(target.shape[0]):
+            for k in range(target.shape[1]):
+                target_copy[i][k] = target[i][k] * wfunc[i] * wfunc2[k]
+        target_copy = self.subtraction(target_copy)
+        return target_copy
+
+    def fft_processing(self, w_image):
+        fimage_or = np.fft.fft2(w_image)
+        fimage_or = np.fft.fftshift(fimage_or)
+        fimage_or = np.abs(fimage_or)
+        return fimage_or
+
+    def fft_scaling(self, image, method):
+        if method == "Linear":
+            fimage = image
+        elif method == "Log":
+            fimage = np.log(image, out=np.zeros_like(image), where=(image != 0))
+        elif method == "Sqrt":
+            fimage = np.sqrt(image)
+        return fimage
+
+    def FFT_process(self, image, method, window):
+        image_mod = self.datatype_change(image)
+        w_image = self.apply_window(image_mod, window)
+        fft_image = self.fft_processing(w_image)
+        fft_image = self.fft_scaling(fft_image, method)
+        fft_image = fft_image.astype(np.float32)
+        return fft_image

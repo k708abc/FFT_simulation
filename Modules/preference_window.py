@@ -11,7 +11,7 @@ class Window(ttk.Frame):
     def __init__(self, master) -> None:
         super().__init__(master, padding=2)
         self.master = master
-        master.geometry("655x670")
+        master.geometry("655x730")
         master.title("Image tester")
         self.processes = []
         self.create_frame_header()
@@ -20,9 +20,13 @@ class Window(ttk.Frame):
         self.create_widgets_process()
         self.create_widgets_image_form()
         self.create_widgets_image_process()
+        self.create_widgets_contrast()
         self.create_widgets_record()
         self.create_layouts_image()
         self.create_layouts_process()
+        self.image_formed = False
+        self.image_processed = False
+        self.FFT_processed = False
 
     def init_setting(self):
         self.num_process = len(self.processes)
@@ -230,15 +234,38 @@ class Window(ttk.Frame):
             width=25,
         )
 
-
     def create_widgets_image_process(self):
+        self.order_table = ["1", "2", "3", "4", "Off"]
+        #
         self.smooth_label = tk.Label(self.master, text="Smooth")
         self.smooth_entry = tk.Entry(self.master, width=6)
         self.smooth_entry.insert(tk.END, 0)
         #
+        self.smooth_order_var = tk.StringVar()
+        self.smooth_order_cb = ttk.Combobox(
+            self.master,
+            textvariable=self.smooth_order_var,
+            values=self.order_table,
+            width=10,
+        )
+        self.smooth_order_cb.bind("<<ComboboxSelected>>", self.smooth_order_selected)
+        self.smooth_order_cb.current(0)
+        self.prev_smooth_val = 0
+        #
         self.rot_label = tk.Label(self.master, text="Rotation")
         self.rot_entry = tk.Entry(self.master, width=6)
         self.rot_entry.insert(tk.END, 0)
+        #
+        self.rot_order_var = tk.StringVar()
+        self.rot_order_cb = ttk.Combobox(
+            self.master,
+            textvariable=self.rot_order_var,
+            values=self.order_table,
+            width=10,
+        )
+        self.rot_order_cb.bind("<<ComboboxSelected>>", self.rot_order_selected)
+        self.rot_order_cb.current(1)
+        self.prev_rot_val = 1
         #
         self.resize_label = tk.Label(self.master, text="Resize")
         self.resize_x_label = tk.Label(self.master, text="x")
@@ -248,19 +275,41 @@ class Window(ttk.Frame):
         self.resize_y_entry = tk.Entry(self.master, width=6)
         self.resize_y_entry.insert(tk.END, 256)
         #
+        self.resize_order_var = tk.StringVar()
+        self.resize_order_cb = ttk.Combobox(
+            self.master,
+            textvariable=self.resize_order_var,
+            values=self.order_table,
+            width=10,
+        )
+        self.resize_order_cb.bind("<<ComboboxSelected>>", self.resize_order_selected)
+        self.resize_order_cb.current(2)
+        self.prev_resize_val = 2
+        #
         self.drift_label = tk.Label(self.master, text="Drift")
         self.drift_x_label = tk.Label(self.master, text="x (pix/scan)")
         self.drift_y_label = tk.Label(self.master, text="y (pix/scan)")
         self.drift_x_entry = tk.Entry(self.master, width=6)
         self.drift_x_entry.insert(tk.END, 0)
         self.drift_y_entry = tk.Entry(self.master, width=6)
-        self.drift_y_entry.insert(tk.END, 0) 
+        self.drift_y_entry.insert(tk.END, 0)
+        #
+        self.drift_order_var = tk.StringVar()
+        self.drift_order_cb = ttk.Combobox(
+            self.master,
+            textvariable=self.drift_order_var,
+            values=self.order_table,
+            width=10,
+        )
+        self.drift_order_cb.bind("<<ComboboxSelected>>", self.drift_order_selected)
+        self.drift_order_cb.current(3)
+        self.prev_drift_val = 3
         #
         self.image_process_btn = tk.Button(
             self.master,
             text="Processing",
             command=self.image_process_clicked,
-            height=6,
+            height=7,
             width=15,
         )
         #
@@ -272,10 +321,68 @@ class Window(ttk.Frame):
             height=3,
             width=15,
         )
+        #
+        self.method_fft_var = tk.StringVar()
+        self.method_fft_table = ["Linear", "Sqrt", "Log"]
+        self.method_fft_cb = ttk.Combobox(
+            self.master,
+            textvariable=self.method_fft_var,
+            values=self.method_fft_table,
+        )
+        self.method_fft_cb.bind("<<ComboboxSelected>>", self.cb_method_selected)
+        self.method_fft_cb.current(1)
+        self.method_text = ttk.Label(self.master, text="Intensity")
+        #
+        self.fft_window_var = tk.StringVar()
+        self.window_table = ["None", "Hann", "Hamming", "Blackman"]
+        self.window_cb = ttk.Combobox(
+            self.master, textvariable=self.fft_window_var, values=self.window_table
+        )
+        self.window_cb.bind("<<ComboboxSelected>>", self.cb_window_selected)
+        self.window_cb.current(0)
+        self.window_text = ttk.Label(self.master, text="Window")
+        #
+
+    def create_widgets_contrast(self):
+        self.upper_val = tk.DoubleVar()
+        self.def_max = 255
+        self.upper_val.set(self.def_max)
+        self.upper_val.trace("w", self.upper_value_change)
+        self.scale_upper = ttk.Scale(
+            self.master,
+            variable=self.upper_val,
+            orient=tk.HORIZONTAL,
+            length=300,
+            from_=-50,
+            to=300,
+        )
+        #
+        self.lower_val = tk.DoubleVar()
+        self.def_min = 0
+        self.lower_val.set(self.def_min)
+        self.lower_val.trace("w", self.lower_value_change)
+        self.scale_lower = ttk.Scale(
+            self.master,
+            variable=self.lower_val,
+            orient=tk.HORIZONTAL,
+            length=300,
+            from_=-50,
+            to=300,
+        )
+        self.upper_text = ttk.Label(self.master, text="Upper")
+        self.lower_text = ttk.Label(self.master, text="lower")
 
     def create_widgets_record(self):
-        pass
-
+        self.record_label = tk.Label(self.master, text="Record name")
+        self.record_entry = tk.Entry(self.master, width=40)
+        self.record_entry.insert(tk.END, "artificial_image")
+        self.record_btn = tk.Button(
+            self.master,
+            text="Record",
+            command=self.record_clicked,
+            height=1,
+            width=15,
+        )
 
     def create_layouts_image(self):
         y_1 = 280
@@ -323,14 +430,16 @@ class Window(ttk.Frame):
         self.noise_btn.place(x=x_btn, y=y_4)
         #
 
-
-
     def create_layouts_process(self):
         y_1 = 420
         y_2 = y_1 + 30
         y_3 = y_2 + 30
         y_4 = y_3 + 30
         y_5 = y_4 + 30
+        y_6 = y_5 + 30
+        y_7 = y_6 + 50
+        y_8 = y_7 + 30
+        y_9 = y_8 + 40
         x_1 = 20
         x_2 = 120
         x_3 = 170
@@ -343,9 +452,11 @@ class Window(ttk.Frame):
         x_btn = 520
         self.smooth_label.place(x=x_1, y=y_1)
         self.smooth_entry.place(x=x_2, y=y_1)
+        self.smooth_order_cb.place(x=x_8 - 30, y=y_1)
         #
         self.rot_label.place(x=x_1, y=y_2)
         self.rot_entry.place(x=x_2, y=y_2)
+        self.rot_order_cb.place(x=x_8 - 30, y=y_2)
         #
         #
         self.resize_label.place(x=x_1, y=y_3)
@@ -353,17 +464,33 @@ class Window(ttk.Frame):
         self.resize_y_label.place(x=x_4, y=y_3)
         self.resize_x_entry.place(x=x_3, y=y_3)
         self.resize_y_entry.place(x=x_5, y=y_3)
+        self.resize_order_cb.place(x=x_8 - 30, y=y_3)
         #
         self.drift_label.place(x=x_1, y=y_4)
         self.drift_x_label.place(x=x_2, y=y_4)
-        self.drift_y_label.place(x=x_5 -30, y=y_4)
-        self.drift_x_entry.place(x=x_4-30, y=y_4)
-        self.drift_y_entry.place(x=x_7 -60, y=y_4)
+        self.drift_y_label.place(x=x_5 - 30, y=y_4)
+        self.drift_x_entry.place(x=x_4 - 30, y=y_4)
+        self.drift_y_entry.place(x=x_7 - 60, y=y_4)
+        self.drift_order_cb.place(x=x_8 - 30, y=y_4)
         #
-        self.image_process_btn.place(x = x_btn, y = y_1)
+        self.image_process_btn.place(x=x_btn, y=y_1)
         #
-        self.FFT_label.place(x=x_1, y=y_5)
-        self.FFT_btn.place(x = x_btn, y = y_5)
+        self.FFT_label.place(x=x_1, y=y_5 + 20)
+        self.FFT_btn.place(x=x_btn, y=y_5 + 20)
+        self.method_text.place(x=x_2, y=y_5 + 20)
+        self.method_fft_cb.place(x=x_4, y=y_5 + 20)
+
+        self.window_text.place(x=x_2, y=y_6 + 20)
+        self.window_cb.place(x=x_4, y=y_6 + 20)
+        #
+        self.scale_upper.place(x=x_2, y=y_7)
+        self.scale_lower.place(x=x_2, y=y_8)
+        self.upper_text.place(x=x_1, y=y_7)
+        self.lower_text.place(x=x_1, y=y_8)
+        #
+        self.record_label.place(x=x_1, y=y_9)
+        self.record_entry.place(x=x_2, y=y_9)
+        self.record_btn.place(x=x_btn, y=y_9)
 
     def wave_add_clicked(self):
         var = Plane_wave()
@@ -389,12 +516,28 @@ class Window(ttk.Frame):
     def image_form_clicked(self):
         self.rewrite_process()
         self.image_formation()
+        self.image_formed = True
 
     def image_process_clicked(self):
-        pass
+        if self.image_formed:
+            self.image_processing()
+            self.image_processed = True
 
     def FFT_clicked(self):
-        pass
+        if self.image_processed:
+            self.image_FFT = self.FFT_process(
+                self.processed_image, self.method_fft_cb.get(), self.window_cb.get()
+            )
+            self.FFT_image = self.normarize(self.image_FFT)
+            self.show_FFT()
+            self.FFT_processed = True
+        elif self.image_formed:
+            self.image_FFT = self.FFT_process(
+                self.image, self.method_fft_cb.get(), self.window_cb.get()
+            )
+            self.FFT_image = self.normarize(self.image_FFT)
+            self.show_FFT()
+            self.FFT_processed = True
 
     def update_process_w(self):
         self.create_frame_datalist()
@@ -417,6 +560,65 @@ class Window(ttk.Frame):
                 else:
                     params.append(float(vals.get()))
             self.processes[i].rewrite(params)
+
+    def cb_method_selected(self, event):
+        pass
+
+    def cb_window_selected(self, event):
+        pass
+
+    def reorder(self, current, prev, val):
+        if current == 4:
+            pass
+        elif current == prev:
+            pass
+        else:
+            if current == self.smooth_order_cb.current() and val != 0:
+                self.smooth_order_cb.current(prev)
+                self.prev_smooth_val = prev
+
+            elif current == self.rot_order_cb.current() and val != 1:
+                self.rot_order_cb.current(prev)
+                self.prev_rot_val = prev
+
+            elif current == self.resize_order_cb.current() and val != 2:
+                self.resize_order_cb.current(prev)
+                self.prev_resize_val = prev
+
+            elif current == self.drift_order_cb.current() and val != 3:
+                self.drift_order_cb.current(prev)
+                self.prev_drift_val = prev
+
+    def smooth_order_selected(self, event):
+        current = self.smooth_order_cb.current()
+        self.reorder(current, self.prev_smooth_val, 0)
+        self.prev_smooth_val = current
+
+    def rot_order_selected(self, event):
+        current = self.rot_order_cb.current()
+        self.reorder(current, self.prev_rot_val, 1)
+        self.prev_rot_val = current
+
+    def resize_order_selected(self, event):
+        current = self.resize_order_cb.current()
+        self.reorder(current, self.prev_resize_val, 2)
+        self.prev_resize_val = current
+
+    def drift_order_selected(self, event):
+        current = self.drift_order_cb.current()
+        self.reorder(current, self.prev_drift_val, 3)
+        self.prev_drift_val = current
+
+    def record_clicked(self):
+        self.record_function()
+
+    def upper_value_change(self, *args):
+        if self.FFT_processed:
+            self.show_FFT()
+
+    def lower_value_change(self, *args):
+        if self.FFT_processed:
+            self.show_FFT()
 
     def run(self):
         self.mainloop()
