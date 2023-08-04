@@ -2,7 +2,15 @@ from typing import Dict
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import *
-from Modules.image_process_class import Plane_wave, Random_offset, Noise
+from Modules.image_process_class import (
+    Plane_wave,
+    Random_offset,
+    Noise,
+    Smothing,
+    Resize,
+    Rotation,
+    Drift,
+)
 
 
 class Window(ttk.Frame):
@@ -13,7 +21,8 @@ class Window(ttk.Frame):
         self.master = master
         master.geometry("655x730")
         master.title("Image tester")
-        self.processes = []
+        self.processes_1 = []
+        self.processes_2 = []
         self.create_frame_header()
         self.create_frame_datalist()
         self.create_widgets_buttons()
@@ -29,7 +38,9 @@ class Window(ttk.Frame):
         self.FFT_processed = False
 
     def init_setting(self):
-        self.num_process = len(self.processes)
+        self.num_process_1 = len(self.processes_1)
+        self.num_process_2 = len(self.processes_2)
+        self.num_total = self.num_process_1 + self.num_process_2
 
     def _on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
@@ -63,7 +74,10 @@ class Window(ttk.Frame):
         #
 
         self.header2 = tk.Label(
-            self.frame_list_index, width=28, text="Components", background="white"
+            self.frame_list_index,
+            width=28,
+            text="Components or process",
+            background="white",
         )
         self.header3 = tk.Label(
             self.frame_list_index, width=14, text="Parameters", background="white"
@@ -83,7 +97,7 @@ class Window(ttk.Frame):
 
     def form_canvas_datalist(self):
         self.canvas.grid(
-            row=1, rowspan=max(1, self.num_process), column=0, columnspan=5
+            row=1, rowspan=max(1, self.num_total + 2), column=0, columnspan=5
         )
         #
         vbar = tk.ttk.Scrollbar(self.master, orient=tk.VERTICAL)
@@ -93,10 +107,10 @@ class Window(ttk.Frame):
         #
         self.canvas.config(yscrollcommand=vbar.set)
         #
-        sc_hgt = int(150 / 6 * (self.num_process))
+        sc_hgt = int(150 / 6 * (self.num_total + 2))
         self.canvas.config(scrollregion=(0, 0, 500, sc_hgt))
         #
-        if self.num_process >= 8:
+        if self.num_total + 2 >= 8:
             self.frame_list.bind_all("<MouseWheel>", self._on_mousewheel)
         else:
             self.frame_list.bind_all("<MouseWheel>", self._no_mousewheel)
@@ -107,17 +121,13 @@ class Window(ttk.Frame):
             width=self.canvas.cget("width"),
         )
 
-    def create_widgets_datalist(self):
-        self.check_list = []
-        self.process_vals = []
-
-        for i in range(self.num_process):
-            # color set
+    def list_form(self, process, start_val):
+        check_list = []
+        for i in range(len(process)):
             if i % 2 == 0:
                 color = "#cdfff7"  # blue
             else:
                 color = "white"
-            # checkbox
             check_bln = tk.BooleanVar()
             check_bln.set(False)
             chk_btn = tk.Checkbutton(
@@ -127,34 +137,59 @@ class Window(ttk.Frame):
                 text="",
                 background="white",
             )
-            chk_btn.grid(row=i + 2, column=0, padx=0, pady=0, ipadx=0, ipady=0)
-            self.check_list.append(check_bln)
-            #
+            chk_btn.grid(
+                row=start_val + i + 2, column=0, padx=0, pady=0, ipadx=0, ipady=0
+            )
+            check_list.append(check_bln)
             # process name
             process_name = tk.Label(
-                self.frame_list, width=18, text=self.processes[i].name, background=color
+                self.frame_list, width=18, text=process[i].name, background=color
             )
-            process_name.grid(row=i + 2, column=1, padx=1, pady=0, ipadx=0, ipady=0)
+            process_name.grid(
+                row=start_val + i + 2, column=1, padx=1, pady=0, ipadx=0, ipady=0
+            )
             #
-            process_temp = self.get_process_list(self.processes[i], color, i + 1)
-            self.process_vals.append(process_temp)
+            clm = 2
+            for pro_name in process.params:
+                text = tk.Label(
+                    self.frame_list, width=6, text=pro_name, background=color
+                )
+                var = StringVar()
+                entry = tk.Entry(
+                    self.frame_list, width=5, background=color, textvariable=var
+                )
+                entry.insert(tk.END, process.getval(pro_name))
+                text.grid(
+                    row=start_val + i + 2, column=clm, padx=1, pady=0, ipadx=0, ipady=0
+                )
+                entry.grid(
+                    row=start_val + i + 2,
+                    column=clm + 1,
+                    padx=1,
+                    pady=0,
+                    ipadx=0,
+                    ipady=0,
+                )
+                clm += 2
 
-    def get_process_list(self, process, color, num):
-        returns = [process.name]
-        clm = 2
-        for pro_name in process.params:
-            text = tk.Label(self.frame_list, width=8, text=pro_name, background=color)
-            var = StringVar()
-            entry = tk.Entry(
-                self.frame_list, width=6, background=color, textvariable=var
-            )
-            entry.insert(tk.END, process.getval(pro_name))
-
-            text.grid(row=num + 1, column=clm, padx=1, pady=0, ipadx=0, ipady=0)
-            entry.grid(row=num + 1, column=clm + 1, padx=1, pady=0, ipadx=0, ipady=0)
-            returns.append(var)
-            clm += 2
-        return returns
+    def create_widgets_datalist(self):
+        self.check_list_1 = []
+        self.check_list_2 = []
+        color = "#FFCDE2"
+        image1_text = tk.Label(
+            self.frame_list, width=10, text="First image", background=color
+        )
+        image1_text.grid(row=2, column=0, padx=0, pady=0, ipadx=0, ipady=0)
+        self.check_list_1 = self.list_form(self.processes_1, 3)
+        #
+        color = "#FFCDE2"
+        image2_text = tk.Label(
+            self.frame_list, width=10, text="Second image", background=color
+        )
+        image2_text.grid(
+            row=self.num_process_1 + 3, column=0, padx=0, pady=0, ipadx=0, ipady=0
+        )
+        self.check_list_2 = self.list_form(self.processes_2, self.num_process_1 + 4)
 
     def all_check(self):
         if self.header_check_bln.get():
@@ -246,7 +281,7 @@ class Window(ttk.Frame):
             self.master,
             textvariable=self.smooth_order_var,
             values=self.order_table,
-            width=10,
+            width=8,
         )
         self.smooth_order_cb.bind("<<ComboboxSelected>>", self.smooth_order_selected)
         self.smooth_order_cb.current(0)
@@ -261,7 +296,7 @@ class Window(ttk.Frame):
             self.master,
             textvariable=self.rot_order_var,
             values=self.order_table,
-            width=10,
+            width=8,
         )
         self.rot_order_cb.bind("<<ComboboxSelected>>", self.rot_order_selected)
         self.rot_order_cb.current(1)
@@ -280,7 +315,7 @@ class Window(ttk.Frame):
             self.master,
             textvariable=self.resize_order_var,
             values=self.order_table,
-            width=10,
+            width=8,
         )
         self.resize_order_cb.bind("<<ComboboxSelected>>", self.resize_order_selected)
         self.resize_order_cb.current(2)
@@ -299,7 +334,7 @@ class Window(ttk.Frame):
             self.master,
             textvariable=self.drift_order_var,
             values=self.order_table,
-            width=10,
+            width=8,
         )
         self.drift_order_cb.bind("<<ComboboxSelected>>", self.drift_order_selected)
         self.drift_order_cb.current(3)
@@ -328,6 +363,7 @@ class Window(ttk.Frame):
             self.master,
             textvariable=self.method_fft_var,
             values=self.method_fft_table,
+            width=10,
         )
         self.method_fft_cb.bind("<<ComboboxSelected>>", self.cb_method_selected)
         self.method_fft_cb.current(1)
@@ -336,12 +372,20 @@ class Window(ttk.Frame):
         self.fft_window_var = tk.StringVar()
         self.window_table = ["None", "Hann", "Hamming", "Blackman"]
         self.window_cb = ttk.Combobox(
-            self.master, textvariable=self.fft_window_var, values=self.window_table
+            self.master,
+            textvariable=self.fft_window_var,
+            values=self.window_table,
+            width=10,
         )
         self.window_cb.bind("<<ComboboxSelected>>", self.cb_window_selected)
         self.window_cb.current(0)
         self.window_text = ttk.Label(self.master, text="Window")
         #
+        self.ccut_check_bln = tk.BooleanVar()
+        self.ccut_check_bln.set(True)
+        self.ccut_chk = tk.Checkbutton(
+            self.master, width=6, text="Center cut", variable=self.ccut_check_bln
+        )
 
     def create_widgets_contrast(self):
         self.upper_val = tk.DoubleVar()
@@ -478,10 +522,11 @@ class Window(ttk.Frame):
         self.FFT_label.place(x=x_1, y=y_5 + 20)
         self.FFT_btn.place(x=x_btn, y=y_5 + 20)
         self.method_text.place(x=x_2, y=y_5 + 20)
-        self.method_fft_cb.place(x=x_4, y=y_5 + 20)
+        self.method_fft_cb.place(x=x_3 + 20, y=y_5 + 20)
 
-        self.window_text.place(x=x_2, y=y_6 + 20)
-        self.window_cb.place(x=x_4, y=y_6 + 20)
+        self.window_text.place(x=x_5 + 20, y=y_5 + 20)
+        self.window_cb.place(x=x_7, y=y_5 + 20)
+        self.ccut_chk.place(x=x_2, y=y_6 + 20)
         #
         self.scale_upper.place(x=x_2, y=y_7)
         self.scale_lower.place(x=x_2, y=y_8)
@@ -517,26 +562,33 @@ class Window(ttk.Frame):
         self.rewrite_process()
         self.image_formation()
         self.image_formed = True
+        if self.image_processed:
+            self.image_processing()
+            if self.FFT_processed:
+                self.FFT_processing(self.processed_image)
+        elif self.FFT_processed:
+            self.FFT_processing(self.image)
 
     def image_process_clicked(self):
         if self.image_formed:
             self.image_processing()
             self.image_processed = True
+        if self.FFT_processed:
+            self.FFT_processing(self.processed_image)
+
+    def FFT_processing(self, image):
+        self.image_FFT = self.FFT_process(
+            image, self.method_fft_cb.get(), self.window_cb.get()
+        )
+        self.FFT_image = self.normarize(self.image_FFT)
+        self.show_FFT()
 
     def FFT_clicked(self):
         if self.image_processed:
-            self.image_FFT = self.FFT_process(
-                self.processed_image, self.method_fft_cb.get(), self.window_cb.get()
-            )
-            self.FFT_image = self.normarize(self.image_FFT)
-            self.show_FFT()
+            self.FFT_processing(self.processed_image)
             self.FFT_processed = True
         elif self.image_formed:
-            self.image_FFT = self.FFT_process(
-                self.image, self.method_fft_cb.get(), self.window_cb.get()
-            )
-            self.FFT_image = self.normarize(self.image_FFT)
-            self.show_FFT()
+            self.FFT_processing(self.image)
             self.FFT_processed = True
 
     def update_process_w(self):
