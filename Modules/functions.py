@@ -10,14 +10,35 @@ class functions:
     def image_formation(self):
         px = int(self.pix_x_entry.get())
         py = int(self.pix_y_entry.get())
-        image_rec = [np.zeros((px, py))]
-        for i in self.processes:
-            i.px = px
-            i.py = py
-            image_rec.append(i.run())
-        self.image = np.sum(image_rec, axis=0)
-        self.image = self.normarize(self.image)
-        cv2.imshow("Original image", self.image)
+        self.images = [[], [], []]
+        for i in range(len(self.processes)):
+            if i in (0, 1):
+                image_rec = [np.ones((px, py))]
+            else:
+                image_rec = [self.images[0][1] + self.images[1][1]]
+            for k in self.processes[i][0]:
+                k.px = px
+                k.py = py
+                image_rec.append(k.run())
+            image = np.sum(image_rec, axis=0)
+            image = self.normarize(image)
+            image_rec = np.copy(image)
+            self.images[i].append(image_rec)
+            #
+            for k in self.processes[i][1]:
+                k.image = image
+                image = k.run()
+            image_rec = np.copy(image)
+            self.images[i].append(image_rec)
+        self.show_image()
+
+    def show_image(self):
+        cv2.imshow("Original image 1", self.images[0][0])
+        cv2.imshow("Processed image 1", self.images[0][1])
+        cv2.imshow("Original image 2", self.images[1][0])
+        cv2.imshow("Processed image 2", self.images[1][1])
+        cv2.imshow("Total image", self.images[2][0])
+        cv2.imshow("Processed total image", self.images[2][1])  
 
     def normarize(self, image):
         val_min = np.min(image)
@@ -28,31 +49,7 @@ class functions:
         new_image = (image - val_min) / diff
         return new_image
 
-    def image_processing(self):
-        self.processed_image = np.copy(self.image)
-        for i in range(4):
-            if i == self.prev_smooth_val:
-                self.processed_image = self.smoothing(
-                    self.processed_image, float(self.smooth_entry.get())
-                )
-            elif i == self.prev_rot_val:
-                self.processed_image = self.rotation(
-                    self.processed_image, float(self.rot_entry.get())
-                )
-            elif i == self.prev_resize_val:
-                self.processed_image = self.resize(
-                    self.processed_image,
-                    int(self.resize_x_entry.get()),
-                    int(self.resize_y_entry.get()),
-                )
-            elif i == self.prev_drift_val:
-                self.processed_image = self.drift(
-                    self.processed_image,
-                    float(self.drift_x_entry.get()),
-                    float(self.drift_y_entry.get()),
-                )
-        self.processed_image = self.normarize(self.processed_image)
-        cv2.imshow("Processed image", self.processed_image)
+
 
     def show_FFT(self):
         upper, lower = self.current_contrast()

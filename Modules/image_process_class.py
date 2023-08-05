@@ -124,14 +124,19 @@ class Noise:
 class Smothing:
     name = "Smoothing"
     image = None
-    val = None
-    params = ["val"]
+    range = None
+    params = ["range"]
 
     def rewrite(self, params):
-        self.val = params[0]
+        self.range = params[0]
+
+    def getval(self, p_name):
+        if p_name == "range":
+            return self.range
+
 
     def run(self):
-        image_mod = ndimage.gaussian_filter(self.image, float(self.val))
+        image_mod = ndimage.gaussian_filter(self.image, float(self.range))
         return image_mod
 
 
@@ -143,6 +148,11 @@ class Rotation:
 
     def rewrite(self, params):
         self.val = params[0]
+
+    def getval(self, p_name):
+        if p_name == "angle":
+            return self.angle
+
 
     def run(self):
         width, height = self.image.shape[1], self.image.shape[0]
@@ -168,6 +178,13 @@ class Resize:
         self.size_x = params[0]
         self.size_y = params[1]
 
+    def getval(self, p_name):
+        if p_name == "size_x":
+            return self.size_x
+        if p_name == "size_y":
+            return self.size_y
+
+
     def run(self):
         mod_image = cv2.resize(self.image, (self.size_x, self.size_y))
         return mod_image
@@ -183,6 +200,12 @@ class Drift:
     def rewrite(self, params):
         self.x = params[0]
         self.y = params[1]
+
+    def getval(self, p_name):
+        if p_name == "x":
+            return self.x
+        if p_name == "y":
+            return self.y
 
     def run(self):
         ps_x = len(self.image)
