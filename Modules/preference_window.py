@@ -10,6 +10,7 @@ from Modules.image_process_class import (
     Resize,
     Rotation,
     Drift,
+    MyImage
 )
 
 
@@ -19,11 +20,17 @@ class Window(ttk.Frame):
     def __init__(self, master) -> None:
         super().__init__(master, padding=2)
         self.master = master
-        master.geometry("655x730")
+        master.geometry("655x760")
         master.title("Image tester")
         self.processes = [[[], []], [[], []], [[], []]]
-        self.images = [[], [], []]
+        self.im_select = 0
+        self.contrast_table = ["First original", "First processed", "First original FFT", "First processsed FFT", "Second original", "Second processed", "Second original FFT", "Second processsed FFT", "Total original", "Total processed", "Total original FFT", "Total processsed FFT"]
+        self.images = [MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage]
+        for i, val  in enumerate(self.images):
+            val.name = self.contrast_table[i]
+
         self.create_frame_header()
+        self.bool_set()
         self.create_frame_datalist()
         self.create_widgets_buttons()
         self.create_widgets_process()
@@ -31,11 +38,13 @@ class Window(ttk.Frame):
         self.create_widgets_image_process()
         self.create_widgets_contrast()
         self.create_widgets_record()
+        self.create_layputs_foam()
         self.create_layouts_image()
         self.create_layouts_process()
         self.image_formed = False
         self.image_processed = False
         self.FFT_processed = False
+
 
     def init_setting(self):
         self.num_process_1 = len(self.processes[0][0]) + len(self.processes[0][1])
@@ -88,6 +97,38 @@ class Window(ttk.Frame):
         self.header_chk.grid(row=0, column=0, padx=0, pady=0, ipadx=0, ipady=0)
         self.header2.grid(row=0, column=1, padx=1, pady=0, ipadx=0, ipady=0)
         self.header3.grid(row=0, column=2, padx=1, pady=0, ipadx=0, ipady=0)
+
+
+    def bool_set(self):
+        self.first_or_bln = tk.BooleanVar()
+        self.first_or_bln.set(True)
+        self.first_pro_bln = tk.BooleanVar()
+        self.first_pro_bln.set(True)
+        self.first_or_FFT_bln = tk.BooleanVar()
+        self.first_or_FFT_bln.set(True)
+        self.first_pro_FFT_bln = tk.BooleanVar()
+        self.first_pro_FFT_bln.set(True)
+        #
+        self.second_or_bln = tk.BooleanVar()
+        self.second_or_bln.set(True)
+        self.second_pro_bln = tk.BooleanVar()
+        self.second_pro_bln.set(True)
+        self.second_or_FFT_bln = tk.BooleanVar()
+        self.second_or_FFT_bln.set(True)
+        self.second_pro_FFT_bln = tk.BooleanVar()
+        self.second_pro_FFT_bln.set(True)
+        #
+        self.total_or_bln = tk.BooleanVar()
+        self.total_or_bln.set(True)
+        self.total_pro_bln = tk.BooleanVar()
+        self.total_pro_bln.set(True)
+        self.total_FFT_bln = tk.BooleanVar()
+        self.total_FFT_bln.set(True)
+        self.total_or_FFT_bln = tk.BooleanVar()
+        self.total_or_FFT_bln.set(True)
+        self.total_pro_FFT_bln = tk.BooleanVar()
+        self.total_pro_FFT_bln.set(True)
+        self.show_bool_list = [self.first_or_bln, self.first_pro_bln, self.first_or_FFT_bln, self.first_pro_FFT_bln, self.second_or_bln, self.second_pro_bln, self.second_or_FFT_bln, self.second_pro_FFT_bln,self.total_or_bln, self.total_pro_bln, self.total_or_FFT_bln, self.total_pro_FFT_bln,]
 
     def create_frame_datalist(self):
         self.canvas = tk.Canvas(self.master, width=630, height=250, bg="white")
@@ -199,6 +240,8 @@ class Window(ttk.Frame):
         image2_text.grid(
             row=list_num , column=0, padx=0, pady=0, ipadx=0, ipady=0
         )
+
+
         list_num += 1
         self.check_list[1][0], self.var_list[1][0] = self.list_form(self.processes[1][0], list_num )
         list_num += len(self.processes[1][0])
@@ -212,6 +255,22 @@ class Window(ttk.Frame):
         image3_text.grid(
             row= list_num , column=0, padx=0, pady=0, ipadx=0, ipady=0
         )
+        self.marge_var = tk.StringVar()
+        self.marge_table = ["+", "-", "×"]
+        self.marge_cb = ttk.Combobox(
+            self.frame_list,
+            textvariable=self.marge_var,
+            values=self.marge_table,
+            width=18,
+        )
+        self.marge_cb.bind("<<ComboboxSelected>>", self.marge_selected)
+        self.marge_cb.current(2)
+        self.marge_select = 2
+        self.marge_cb.grid(
+            row= list_num , column=1, padx=0, pady=0, ipadx=0, ipady=0
+        )
+
+
         list_num += 1
         self.check_list[2][0], self.var_list[2][0] = self.list_form(self.processes[2][0], list_num)
         list_num += len(self.processes[2][0])
@@ -306,9 +365,57 @@ class Window(ttk.Frame):
             self.master,
             text="Forming image",
             command=self.image_form_clicked,
-            height=1,
+            height=6,
             width=25,
         )
+        #
+        self.first_label = tk.Label(self.master, text="First image")
+        self.first_or_chk = tk.Checkbutton(
+            self.master, width=7, text="Original", variable=self.first_or_bln
+        )
+        self.first_pro_chk = tk.Checkbutton(
+            self.master, width=7, text="Processed", variable=self.first_pro_bln
+        )
+        self.first_or_FFT_chk = tk.Checkbutton(
+            self.master, width=7, text="Or. FFT", variable=self.first_or_FFT_bln
+        )
+        self.first_pro_FFT_chk = tk.Checkbutton(
+            self.master, width=7, text="Pro. FFT", variable=self.first_pro_FFT_bln
+        )
+
+
+        #
+        self.second_label = tk.Label(self.master, text="Second image")
+        self.second_or_chk = tk.Checkbutton(
+            self.master, width=7, text="Original", variable=self.second_or_bln
+        )
+        self.second_pro_chk = tk.Checkbutton(
+            self.master, width=7, text="Processed", variable=self.second_pro_bln
+        )
+        self.second_or_FFT_chk = tk.Checkbutton(
+            self.master, width=7, text="Or. FFT", variable=self.second_or_FFT_bln
+        )
+        self.second_pro_FFT_chk = tk.Checkbutton(
+            self.master, width=7, text="Pro. FFT", variable=self.second_pro_FFT_bln
+        )
+
+
+
+        self.total_label = tk.Label(self.master, text="Total image")
+        self.total_or_chk = tk.Checkbutton(
+            self.master, width=7, text="Original", variable=self.total_or_bln
+        )
+        self.total_pro_chk = tk.Checkbutton(
+            self.master, width=7, text="Processed", variable=self.total_pro_bln
+        )
+        self.total_or_FFT_chk = tk.Checkbutton(
+            self.master, width=7, text="Or. FFT", variable=self.total_or_FFT_bln
+        )
+        self.total_pro_FFT_chk = tk.Checkbutton(
+            self.master, width=7, text="Pro. FFT", variable=self.total_pro_FFT_bln
+        )
+
+
 
     def create_widgets_image_process(self):
         
@@ -369,13 +476,6 @@ class Window(ttk.Frame):
         )
         #
         self.FFT_label = tk.Label(self.master, text="FFT")
-        self.FFT_btn = tk.Button(
-            self.master,
-            text="FFT",
-            command=self.FFT_clicked,
-            height=3,
-            width=15,
-        )
         #
         self.method_fft_var = tk.StringVar()
         self.method_fft_table = ["Linear", "Sqrt", "Log"]
@@ -385,7 +485,6 @@ class Window(ttk.Frame):
             values=self.method_fft_table,
             width=10,
         )
-        self.method_fft_cb.bind("<<ComboboxSelected>>", self.cb_method_selected)
         self.method_fft_cb.current(1)
         self.method_text = ttk.Label(self.master, text="Intensity")
         #
@@ -397,7 +496,6 @@ class Window(ttk.Frame):
             values=self.window_table,
             width=10,
         )
-        self.window_cb.bind("<<ComboboxSelected>>", self.cb_window_selected)
         self.window_cb.current(0)
         self.window_text = ttk.Label(self.master, text="Window")
         #
@@ -408,6 +506,18 @@ class Window(ttk.Frame):
         )
 
     def create_widgets_contrast(self):
+        self.contrast_text = ttk.Label(self.master, text="Contrast")
+        self.contrast_var = tk.StringVar()
+
+        self.contrast_cb = ttk.Combobox(
+            self.master,
+            textvariable=self.contrast_var,
+            values=self.contrast_table,
+            width=20,
+        )
+        self.contrast_cb.bind("<<ComboboxSelected>>", self.cb_contrast_selected)
+        self.contrast_cb.current(self.im_select)
+
         self.upper_val = tk.DoubleVar()
         self.def_max = 255
         self.upper_val.set(self.def_max)
@@ -448,8 +558,43 @@ class Window(ttk.Frame):
             width=15,
         )
 
-    def create_layouts_image(self):
+    def create_layputs_foam(self):
         y_1 = 280
+        y_2 = y_1 + 30
+        y_3 = y_2 + 30
+        y_4 = y_3 + 30
+        x_1 = 20
+        x_2 = 120
+        x_3 = 200
+        x_4 = 280
+        x_5 = 360
+
+        self.del_checked_btn.place(x=20, y=y_1)
+        self.pix_x_label.place(x=180, y=y_1 + 2)
+        self.pix_x_entry.place(x=250, y=y_1 + 2)
+        self.pix_y_label.place(x=310, y=y_1 + 2)
+        self.pix_y_entry.place(x=380, y=y_1 + 2)
+        self.image_form_btn.place(x=450, y=y_1)
+        self.first_label.place(x=x_1, y=y_2)
+        self.second_label.place(x=x_1, y=y_3)
+        self.total_label.place(x=x_1, y=y_4)
+        self.first_or_chk.place(x=x_2, y=y_2)
+        self.first_pro_chk.place(x=x_3, y=y_2)
+        self.first_or_FFT_chk.place(x=x_4, y=y_2)
+        self.first_pro_FFT_chk.place(x=x_5, y=y_2)
+        self.second_or_chk.place(x=x_2, y=y_3)
+        self.second_pro_chk.place(x=x_3, y=y_3)
+        self.second_or_FFT_chk.place(x=x_4, y=y_3)
+        self.second_pro_FFT_chk.place(x=x_5, y=y_3)
+        self.total_or_chk.place(x=x_2, y=y_4)
+        self.total_pro_chk.place(x=x_3, y=y_4)
+        self.total_or_FFT_chk.place(x=x_4, y=y_4)
+        self.total_pro_FFT_chk.place(x=x_5, y=y_4)
+
+
+
+    def create_layouts_image(self):
+        y_1 = 360
         y_2 = y_1 + 40
         y_3 = y_2 + 30
         y_4 = y_3 + 30
@@ -464,14 +609,7 @@ class Window(ttk.Frame):
         x_8 = 420
         x_9 = 470
         x_btn = 520
-        #
-        # self.components_label.place(x=20, y=y_1)
-        self.del_checked_btn.place(x=20, y=y_1)
-        self.pix_x_label.place(x=180, y=y_1 + 2)
-        self.pix_x_entry.place(x=250, y=y_1 + 2)
-        self.pix_y_label.place(x=310, y=y_1 + 2)
-        self.pix_y_entry.place(x=380, y=y_1 + 2)
-        self.image_form_btn.place(x=450, y=y_1)
+
         self.select_cb.place(x = 20, y = y_2)
         #
         self.waves_label.place(x=x_1, y=y_3)
@@ -497,15 +635,15 @@ class Window(ttk.Frame):
         #
 
     def create_layouts_process(self):
-        y_1 = 440
+        y_1 = 520
         y_2 = y_1 + 30
         y_3 = y_2 + 30
         y_4 = y_3 + 30
         y_5 = y_4 + 30
         y_6 = y_5 + 30
-        y_7 = y_6 + 50
+        y_7 = y_6 + 30
         y_8 = y_7 + 30
-        y_9 = y_8 + 40
+        y_9 = y_8 + 30
         x_1 = 20
         x_2 = 120
         x_3 = 170
@@ -539,26 +677,26 @@ class Window(ttk.Frame):
         self.drift_x_entry.place(x=x_4 - 30, y=y_4)
         self.drift_y_entry.place(x=x_7 - 60, y=y_4)
         self.drift_btn.place(x = x_btn,  y = y_4)
+        
         #
+        self.FFT_label.place(x=x_1, y=y_5)
+        self.method_text.place(x=x_2, y=y_5)
+        self.method_fft_cb.place(x=x_3 + 20, y=y_5)
 
+        self.window_text.place(x=x_5 + 20, y=y_5)
+        self.window_cb.place(x=x_7, y=y_5)
+        self.ccut_chk.place(x=x_btn, y=y_5)
         #
-        self.FFT_label.place(x=x_1, y=y_5 + 20)
-        self.FFT_btn.place(x=x_btn, y=y_5 + 20)
-        self.method_text.place(x=x_2, y=y_5 + 20)
-        self.method_fft_cb.place(x=x_3 + 20, y=y_5 + 20)
-
-        self.window_text.place(x=x_5 + 20, y=y_5 + 20)
-        self.window_cb.place(x=x_7, y=y_5 + 20)
-        self.ccut_chk.place(x=x_2, y=y_6 + 20)
+        self.contrast_text.place(x=x_1, y=y_6)
+        self.contrast_cb.place(x=x_1, y=y_7)
+        self.scale_upper.place(x=x_5, y=y_6)
+        self.scale_lower.place(x=x_5, y=y_7)
+        self.upper_text.place(x=x_4, y=y_6)
+        self.lower_text.place(x=x_4, y=y_7)
         #
-        self.scale_upper.place(x=x_2, y=y_7)
-        self.scale_lower.place(x=x_2, y=y_8)
-        self.upper_text.place(x=x_1, y=y_7)
-        self.lower_text.place(x=x_1, y=y_8)
-        #
-        self.record_label.place(x=x_1, y=y_9)
-        self.record_entry.place(x=x_2, y=y_9)
-        self.record_btn.place(x=x_btn, y=y_9)
+        self.record_label.place(x=x_1, y=y_8)
+        self.record_entry.place(x=x_2, y=y_8)
+        self.record_btn.place(x=x_btn, y=y_8)
 
     def wave_add_clicked(self):
         var = Plane_wave()
@@ -616,30 +754,11 @@ class Window(ttk.Frame):
             self.image_processing()
             if self.FFT_processed:
                 self.FFT_processing(self.processed_image)
-        elif self.FFT_processed:
-            self.FFT_processing(self.image)
 
     def image_process_clicked(self):
         if self.image_formed:
             self.image_processing()
             self.image_processed = True
-        if self.FFT_processed:
-            self.FFT_processing(self.processed_image)
-
-    def FFT_processing(self, image):
-        self.image_FFT = self.FFT_process(
-            image, self.method_fft_cb.get(), self.window_cb.get()
-        )
-        self.FFT_image = self.normarize(self.image_FFT)
-        self.show_FFT()
-
-    def FFT_clicked(self):
-        if self.image_processed:
-            self.FFT_processing(self.processed_image)
-            self.FFT_processed = True
-        elif self.image_formed:
-            self.FFT_processing(self.image)
-            self.FFT_processed = True
 
     def update_process_w(self):
         self.create_frame_datalist()
@@ -662,28 +781,30 @@ class Window(ttk.Frame):
                     params = [float(var.get()) for var in vars]
                     self.processes[i][j][k].rewrite(params)
 
-    def cb_method_selected(self, event):
-        pass
-
-    def cb_window_selected(self, event):
-        pass
-
 
     def record_clicked(self):
         self.record_function()
 
     def upper_value_change(self, *args):
-        if self.FFT_processed:
-            self.show_FFT()
+        self.images[self.im_select].upper = int(self.upper_val.get())
+        self.contrast_change()
+
 
     def lower_value_change(self, *args):
-        if self.FFT_processed:
-            self.show_FFT()
-
+        self.images[self.im_select].lower = int(self.lower_val.get())
+        self.contrast_change()
 
     def select_selected(self, event):
         self.current_select = self.select_cb.current()
 
+
+    def marge_selected(self, event):
+        self.marge_select = self.marge_cb.current()
+
+    def cb_contrast_selected(self, event):
+        self.im_select = self.contrast_cb.current()
+        self.lower_val.set(self.images[self.im_select].lower)
+        self.upper_val.set(self.images[self.im_select].upper)
 
     def run(self):
         self.mainloop()

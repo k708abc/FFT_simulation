@@ -328,3 +328,66 @@ class image_modifier:
         if self.ccut_check_bln.get():
             fft_image = self.cut_center(fft_image)
         return fft_image
+
+
+
+class MyImage:
+    name = None
+    image = None
+    upper = 255
+    lower = 0
+    def show(self):
+        LUT = self.get_LUT(self.upper, self.lower)
+        image_mod = (self.image) * 255
+        image_mod = image_mod.astype(np.uint8)
+        modified_image = cv2.LUT(image_mod, LUT)
+        cv2.imshow(self.name, modified_image)
+
+    def get_LUT(self, maximum, minimum):
+        LUT = np.zeros((256, 1), dtype="uint8")
+        maximum = int(maximum)
+        minimum = int(minimum)
+        if maximum == minimum:
+            for i in range(-50, 301):
+                if i < maximum:
+                    if i >= 0 and i <= 255:
+                        LUT[i][0] = 0
+                elif i == maximum:
+                    if i >= 0 and i <= 255:
+                        LUT[i][0] = maximum
+                else:
+                    if i >= 0 and i <= 255:
+                        LUT[i][0] = 255
+        elif maximum > minimum:
+            diff = 255 / (maximum - minimum)
+            k = 0
+            for i in range(-50, 301):
+                if i < minimum:
+                    if i >= 0 and i <= 255:
+                        LUT[i][0] = 0
+                elif i <= maximum:
+                    if i >= 0 and i <= 255:
+                        LUT[i][0] = int(diff * k)
+                    k = k + 1
+                else:
+                    if i >= 0 and i <= 255:
+                        LUT[i][0] = 255
+        else:
+            diff = 255 / (maximum - minimum)
+            k = 0
+            for i in range(-50, 301):
+                if i < maximum:
+                    if i >= 0 and i <= 255:
+                        LUT[i][0] = 255
+                elif i <= minimum:
+                    if i >= 0 and i <= 255:
+                        LUT[i][0] = 255 + int(diff * k)
+                    k = k + 1
+                else:
+                    if i >= 0 and i <= 255:
+                        LUT[i][0] = 0
+        return LUT
+    
+    def record(self):
+        pass
+    

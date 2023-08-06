@@ -10,26 +10,33 @@ class functions:
     def image_formation(self):
         px = int(self.pix_x_entry.get())
         py = int(self.pix_y_entry.get())
-        self.images = [[], [], []]
         for i in range(len(self.processes)):
             if i in (0, 1):
                 image_rec = [np.ones((px, py))]
             else:
-                image_rec = [self.images[0][1] + self.images[1][1]]
+                if self.marge_select == 0:
+                    image_rec = [self.images[0][1] + self.images[1][1]]
+                elif self.marge_select == 1:
+                    image_rec = [self.images[0][1] - self.images[1][1]]
+                elif self.marge_select == 2:
+                    image_rec = [self.images[0][1] * self.images[1][1]]  
             for k in self.processes[i][0]:
                 k.px = px
                 k.py = py
                 image_rec.append(k.run())
             image = np.sum(image_rec, axis=0)
             image = self.normarize(image)
-            image_rec = np.copy(image)
-            self.images[i].append(image_rec)
+            self.images[i].image = np.copy(image)
             #
             for k in self.processes[i][1]:
                 k.image = image
                 image = k.run()
-            image_rec = np.copy(image)
-            self.images[i].append(image_rec)
+            image = self.normarize(image)
+            self.images[i + 1].image = np.copy(image)
+            #
+            #
+            #
+            #FFTもここで作成する
         self.show_image()
 
     def show_image(self):
@@ -48,70 +55,14 @@ class functions:
             return image
         new_image = (image - val_min) / diff
         return new_image
-
-
+    
 
     def show_FFT(self):
         upper, lower = self.current_contrast()
         self.FFT_image_mod = self.contrast_change(self.FFT_image, upper, lower)
         cv2.imshow("FFT image", self.FFT_image_mod)
 
-    def current_contrast(self):
-        upper = int(self.upper_val.get())
-        lower = int(self.lower_val.get())
-        return upper, lower
 
-    def contrast_change(self, image, upper, lower):
-        LUT = self.get_LUT(upper, lower)
-        image_mod = (image) * 255
-        image_mod = image_mod.astype(np.uint8)
-        modified_image = cv2.LUT(image_mod, LUT)
-        return modified_image
-
-    def get_LUT(self, maximum, minimum):
-        LUT = np.zeros((256, 1), dtype="uint8")
-        maximum = int(maximum)
-        minimum = int(minimum)
-        if maximum == minimum:
-            for i in range(-50, 301):
-                if i < maximum:
-                    if i >= 0 and i <= 255:
-                        LUT[i][0] = 0
-                elif i == maximum:
-                    if i >= 0 and i <= 255:
-                        LUT[i][0] = maximum
-                else:
-                    if i >= 0 and i <= 255:
-                        LUT[i][0] = 255
-        elif maximum > minimum:
-            diff = 255 / (maximum - minimum)
-            k = 0
-            for i in range(-50, 301):
-                if i < minimum:
-                    if i >= 0 and i <= 255:
-                        LUT[i][0] = 0
-                elif i <= maximum:
-                    if i >= 0 and i <= 255:
-                        LUT[i][0] = int(diff * k)
-                    k = k + 1
-                else:
-                    if i >= 0 and i <= 255:
-                        LUT[i][0] = 255
-        else:
-            diff = 255 / (maximum - minimum)
-            k = 0
-            for i in range(-50, 301):
-                if i < maximum:
-                    if i >= 0 and i <= 255:
-                        LUT[i][0] = 255
-                elif i <= minimum:
-                    if i >= 0 and i <= 255:
-                        LUT[i][0] = 255 + int(diff * k)
-                    k = k + 1
-                else:
-                    if i >= 0 and i <= 255:
-                        LUT[i][0] = 0
-        return LUT
 
     def record_function(self):
         folder = "Records"
