@@ -81,7 +81,43 @@ class functions:
             x_total += width + 10
         return image
 
+    def clese_each(self):
+        for var in self.images:
+            var.unshow()
+
+    def close_uni_each(self):
+        try:
+            cv2.destroyWindow("First images")
+        except:
+            pass
+        try:
+            cv2.destroyWindow("Second images")
+        except:
+            pass
+        try:
+            cv2.destroyWindow("Total images")
+        except:
+            pass
+
+    def close_uni_all(self):
+        try:
+            cv2.destroyWindow("Images")
+        except:
+            pass
+
+    def image_close(self):
+        if self.uni_each_bln.get():
+            self.clese_each()
+            self.close_uni_all()
+        elif self.uni_all_bln.get():
+            self.clese_each()
+            self.close_uni_each()
+        else:
+            self.close_uni_each()
+            self.close_uni_all()
+
     def show_image(self):
+        self.image_close()
         if self.uni_each_bln.get() or self.uni_all_bln.get():
             self.show_type = 1
             images_1 = []
@@ -120,22 +156,31 @@ class functions:
                 )
                 if self.uni_each_bln.get():
                     cv2.imshow("First images", self.image1)
+                    self.show_type = 1
                 if self.uni_all_bln.get():
                     offset += len(self.image1)
+            else:
+                self.image1 = np.zeros((0, 0))
             if len(images_2) != 0:
                 self.image2 = self.form_each(
                     images_2, images_2_name, images_2_val, offset
                 )
                 if self.uni_each_bln.get():
                     cv2.imshow("Second images", self.image2)
+                    self.show_type = 1
                 if self.uni_all_bln.get():
                     offset += len(self.image2)
+            else:
+                self.image2 = np.zeros((0, 0))
             if len(images_3) != 0:
                 self.image3 = self.form_each(
                     images_3, images_3_name, images_3_val, offset
                 )
                 if self.uni_each_bln.get():
                     cv2.imshow("Total images", self.image3)
+                    self.show_type = 1
+            else:
+                self.image3 = np.zeros((0, 0))
             if self.uni_all_bln.get():
                 self.show_type = 2
                 y1, x1 = self.image1.shape[:2]
@@ -149,6 +194,7 @@ class functions:
                 self.int_image[y1 + 10 : y1 + y2 + 10, 0:x2] = self.image2
                 self.int_image[y1 + y2 + 10 : y1 + y2 + y3 + 10, 0:x3] = self.image3
                 cv2.imshow("Images", self.int_image)
+                self.show_type = 2
 
         else:
             self.show_type = 0
@@ -178,6 +224,22 @@ class functions:
         for var in self.images:
             var.rec_name = rec_name
             var.record()
+
+        if self.show_type == 1:
+            if len(self.image1) > 1:
+                rec_name = folder + "\\" + file + "_1.bmp"
+                cv2.imwrite(rec_name, self.image1)
+            if len(self.image2) > 1:
+                rec_name = folder + "\\" + file + "_2.bmp"
+                cv2.imwrite(rec_name, self.image2)
+            if len(self.image3) > 1:
+                rec_name = folder + "\\" + file + "_total.bmp"
+                cv2.imwrite(rec_name, self.image3)
+
+        elif self.show_type == 2:
+            rec_name = folder + "\\" + file + "_int.bmp"
+            cv2.imwrite(rec_name, self.int_image)
+
         #
         txt_name = rec_name + ".txt"
         if self.image_formed:
