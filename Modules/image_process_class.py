@@ -134,10 +134,12 @@ class Smothing:
         if p_name == "range":
             return self.range
 
-
     def run(self):
         image_mod = ndimage.gaussian_filter(self.image, float(self.range))
         return image_mod
+
+    def rec(self):
+        return "Smoothing:" + "\n\t" "Range: " + "\t" + str(self.range) + "\n"
 
 
 class Rotation:
@@ -153,6 +155,8 @@ class Rotation:
         if p_name == "angle":
             return self.angle
 
+    def rec(self):
+        return "Rotation:" + "\n\t" "angle: " + "\t" + str(self.angle) + "\n"
 
     def run(self):
         width, height = self.image.shape[1], self.image.shape[0]
@@ -184,10 +188,24 @@ class Resize:
         if p_name == "size_y":
             return self.size_y
 
-
     def run(self):
         mod_image = cv2.resize(self.image, (self.size_x, self.size_y))
         return mod_image
+
+    def rec(self):
+        return (
+            "Resize:"
+            + "\n\t"
+            + "size_x: "
+            + "\t"
+            + str(self.size_x)
+            + "\n"
+            + "\n\t"
+            + "size_y: "
+            + "\t"
+            + str(self.size_y)
+            + "\n"
+        )
 
 
 class Drift:
@@ -236,15 +254,35 @@ class Drift:
         im_crop = affine_img[y0:ymax, x0:xmax]
         return im_crop
 
+    def rec(self):
+        return (
+            "Drift:"
+            + "\n\t"
+            + "x: "
+            + "\t"
+            + str(self.x)
+            + "\n"
+            + "\n\t"
+            + "y: "
+            + "\t"
+            + str(self.y)
+            + "\n"
+        )
 
-class image_modifier:
-    def datatype_change(self, image):
-        maximum = image.max()
-        minimum = image.min()
+
+class FFT:
+    image = None
+    window = None
+    scaling = None
+    ccut = False
+
+    def datatype_change(self):
+        maximum = self.image.max()
+        minimum = self.image.min()
         if maximum == minimum:
-            image_mod = image * 255
+            image_mod = self.image * 255
         else:
-            image_mod = (image - minimum) / (maximum - minimum) * 255
+            image_mod = (self.image - minimum) / (maximum - minimum) * 255
         return image_mod.astype(np.uint8)
 
     def subtraction(self, image):
@@ -252,24 +290,24 @@ class image_modifier:
         image_mod = image - minimum
         return image_mod
 
-    def apply_window(self, target, window):
-        target_copy = np.copy(target)
-        if window == "Hann":
-            wfunc = signal.hann(target.shape[0])
-            wfunc2 = signal.hann(target.shape[1])
-        elif window == "Hamming":
-            wfunc = signal.hamming(target.shape[0])
-            wfunc2 = signal.hamming(target.shape[1])
-        elif window == "Blackman":
-            wfunc = signal.blackman(target.shape[0])
-            wfunc2 = signal.blackman(target.shape[1])
+    def apply_window(self, image):
+        im_copy = np.copy(image)
+        if self.window == "Hann":
+            wfunc = signal.hann(im_copy.shape[0])
+            wfunc2 = signal.hann(im_copy.shape[1])
+        elif self.window == "Hamming":
+            wfunc = signal.hamming(im_copy.shape[0])
+            wfunc2 = signal.hamming(im_copy.shape[1])
+        elif self.window == "Blackman":
+            wfunc = signal.blackman(im_copy.shape[0])
+            wfunc2 = signal.blackman(im_copy.shape[1])
         else:
-            wfunc = signal.boxcar(target.shape[0])
-            wfunc2 = signal.boxcar(target.shape[1])
-        for i in range(target.shape[0]):
-            for k in range(target.shape[1]):
-                target_copy[i][k] = target[i][k] * wfunc[i] * wfunc2[k]
-        target_copy = self.subtraction(target_copy)
+            wfunc = signal.boxcar(im_copy.shape[0])
+            wfunc2 = signal.boxcar(im_copy.shape[1])
+        for i in range(im_copy.shape[0]):
+            for k in range(im_copy.shape[1]):
+                im_copy[i][k] = im_copy[i][k] * wfunc[i] * wfunc2[k]
+        target_copy = self.subtraction(im_copy)
         return target_copy
 
     def fft_processing(self, w_image):
@@ -278,12 +316,12 @@ class image_modifier:
         fimage_or = np.abs(fimage_or)
         return fimage_or
 
-    def fft_scaling(self, image, method):
-        if method == "Linear":
+    def fft_scaling(self, image):
+        if self.scaling == "Linear":
             fimage = image
-        elif method == "Log":
+        elif self.scaling == "Log":
             fimage = np.log(image, out=np.zeros_like(image), where=(image != 0))
-        elif method == "Sqrt":
+        elif self.scaling == "Sqrt":
             fimage = np.sqrt(image)
         return fimage
 
@@ -319,16 +357,15 @@ class image_modifier:
         image_mod[center_y + 1][center_x + 1] = value
         return image_mod
 
-    def FFT_process(self, image, method, window):
-        image_mod = self.datatype_change(image)
-        w_image = self.apply_window(image_mod, window)
+    def run(self):
+        image_mod = self.datatype_change()
+        w_image = self.apply_window(image_mod)
         fft_image = self.fft_processing(w_image)
-        fft_image = self.fft_scaling(fft_image, method)
+        fft_image = self.fft_scaling(fft_image)
         fft_image = fft_image.astype(np.float32)
-        if self.ccut_check_bln.get():
+        if self.ccut:
             fft_image = self.cut_center(fft_image)
         return fft_image
-
 
 
 class MyImage:
@@ -336,12 +373,34 @@ class MyImage:
     image = None
     upper = 255
     lower = 0
+    shown = False
+    rec_name = None
+    image_uint8 = None
+    mod_image = np.zeros((1, 1))
+    pos_x1 = None
+    pos_y1 = None
+    pos_x2 = None
+    pos_y2 = None
+
     def show(self):
-        LUT = self.get_LUT(self.upper, self.lower)
+        if self.shown:
+            cv2.imshow(self.name, self.mod_image)
+
+    def unshow(self):
+        if self.shown:
+            cv2.destroyWindow(self.name)
+            self.shown = False
+
+    def form_mod(self):
         image_mod = (self.image) * 255
         image_mod = image_mod.astype(np.uint8)
-        modified_image = cv2.LUT(image_mod, LUT)
-        cv2.imshow(self.name, modified_image)
+        self.image_uint8 = image_mod
+        self.contrast_change()
+
+    def contrast_change(self):
+        LUT = self.get_LUT(self.upper, self.lower)
+        modified_image = cv2.LUT(self.image_uint8, LUT)
+        self.mod_image = modified_image
 
     def get_LUT(self, maximum, minimum):
         LUT = np.zeros((256, 1), dtype="uint8")
@@ -387,7 +446,6 @@ class MyImage:
                     if i >= 0 and i <= 255:
                         LUT[i][0] = 0
         return LUT
-    
+
     def record(self):
-        pass
-    
+        cv2.imwrite(self.rec_name + "_" + self.name + ".bmp", self.mod_image)

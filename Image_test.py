@@ -1,10 +1,9 @@
 import tkinter as tk
 from Modules.preference_window import Window
 from Modules.functions import functions
-from Modules.image_process_class import image_modifier
 
 
-class App(Window, functions, image_modifier):
+class App(Window, functions):
     def __init__(self, master):
         super().__init__(master)
 

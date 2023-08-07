@@ -10,7 +10,7 @@ from Modules.image_process_class import (
     Resize,
     Rotation,
     Drift,
-    MyImage
+    MyImage,
 )
 
 
@@ -23,10 +23,40 @@ class Window(ttk.Frame):
         master.geometry("655x760")
         master.title("Image tester")
         self.processes = [[[], []], [[], []], [[], []]]
+        self.each_opened = False
+        self.all_opened = False
         self.im_select = 0
-        self.contrast_table = ["First original", "First processed", "First original FFT", "First processsed FFT", "Second original", "Second processed", "Second original FFT", "Second processsed FFT", "Total original", "Total processed", "Total original FFT", "Total processsed FFT"]
-        self.images = [MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage, MyImage]
-        for i, val  in enumerate(self.images):
+        self.show_type = 0
+        self.contrast_table = [
+            "First original",
+            "First processed",
+            "First original FFT",
+            "First processsed FFT",
+            "Second original",
+            "Second processed",
+            "Second original FFT",
+            "Second processsed FFT",
+            "Total original",
+            "Total processed",
+            "Total original FFT",
+            "Total processsed FFT",
+        ]
+        self.images = [
+            MyImage(),
+            MyImage(),
+            MyImage(),
+            MyImage(),
+            MyImage(),
+            MyImage(),
+            MyImage(),
+            MyImage(),
+            MyImage(),
+            MyImage(),
+            MyImage(),
+            MyImage(),
+        ]
+
+        for i, val in enumerate(self.images):
             val.name = self.contrast_table[i]
 
         self.create_frame_header()
@@ -44,7 +74,6 @@ class Window(ttk.Frame):
         self.image_formed = False
         self.image_processed = False
         self.FFT_processed = False
-
 
     def init_setting(self):
         self.num_process_1 = len(self.processes[0][0]) + len(self.processes[0][1])
@@ -98,7 +127,6 @@ class Window(ttk.Frame):
         self.header2.grid(row=0, column=1, padx=1, pady=0, ipadx=0, ipady=0)
         self.header3.grid(row=0, column=2, padx=1, pady=0, ipadx=0, ipady=0)
 
-
     def bool_set(self):
         self.first_or_bln = tk.BooleanVar()
         self.first_or_bln.set(True)
@@ -128,7 +156,20 @@ class Window(ttk.Frame):
         self.total_or_FFT_bln.set(True)
         self.total_pro_FFT_bln = tk.BooleanVar()
         self.total_pro_FFT_bln.set(True)
-        self.show_bool_list = [self.first_or_bln, self.first_pro_bln, self.first_or_FFT_bln, self.first_pro_FFT_bln, self.second_or_bln, self.second_pro_bln, self.second_or_FFT_bln, self.second_pro_FFT_bln,self.total_or_bln, self.total_pro_bln, self.total_or_FFT_bln, self.total_pro_FFT_bln,]
+        self.show_bool_list = [
+            self.first_or_bln,
+            self.first_pro_bln,
+            self.first_or_FFT_bln,
+            self.first_pro_FFT_bln,
+            self.second_or_bln,
+            self.second_pro_bln,
+            self.second_or_FFT_bln,
+            self.second_pro_FFT_bln,
+            self.total_or_bln,
+            self.total_pro_bln,
+            self.total_or_FFT_bln,
+            self.total_pro_FFT_bln,
+        ]
 
     def create_frame_datalist(self):
         self.canvas = tk.Canvas(self.master, width=630, height=250, bg="white")
@@ -219,8 +260,8 @@ class Window(ttk.Frame):
         return check_list, var_list
 
     def create_widgets_datalist(self):
-        self.check_list =  [[[], []], [[], []], [[], []]]
-        self.var_list =  [[[], []], [[], []], [[], []]]
+        self.check_list = [[[], []], [[], []], [[], []]]
+        self.var_list = [[[], []], [[], []], [[], []]]
 
         color = "#FFCDE2"
         image1_text = tk.Label(
@@ -228,33 +269,36 @@ class Window(ttk.Frame):
         )
         image1_text.grid(row=2, column=0, padx=0, pady=0, ipadx=0, ipady=0)
         list_num = 3
-        self.check_list[0][0], self.var_list[0][0] = self.list_form(self.processes[0][0], list_num)
+        self.check_list[0][0], self.var_list[0][0] = self.list_form(
+            self.processes[0][0], list_num
+        )
         list_num += len(self.processes[0][0])
-        self.check_list[0][1], self.var_list[0][1] = self.list_form(self.processes[0][1], list_num)
+        self.check_list[0][1], self.var_list[0][1] = self.list_form(
+            self.processes[0][1], list_num
+        )
         #
         color = "#FFCDE2"
         list_num += len(self.processes[0][1]) + 1
         image2_text = tk.Label(
             self.frame_list, width=10, text="Second image", background=color
         )
-        image2_text.grid(
-            row=list_num , column=0, padx=0, pady=0, ipadx=0, ipady=0
-        )
-
+        image2_text.grid(row=list_num, column=0, padx=0, pady=0, ipadx=0, ipady=0)
 
         list_num += 1
-        self.check_list[1][0], self.var_list[1][0] = self.list_form(self.processes[1][0], list_num )
+        self.check_list[1][0], self.var_list[1][0] = self.list_form(
+            self.processes[1][0], list_num
+        )
         list_num += len(self.processes[1][0])
-        self.check_list[1][1], self.var_list[1][1] = self.list_form(self.processes[1][1], list_num)
+        self.check_list[1][1], self.var_list[1][1] = self.list_form(
+            self.processes[1][1], list_num
+        )
         #
         color = "#FFCDE2"
         list_num += len(self.processes[1][1]) + 1
         image3_text = tk.Label(
             self.frame_list, width=10, text="Total image", background=color
         )
-        image3_text.grid(
-            row= list_num , column=0, padx=0, pady=0, ipadx=0, ipady=0
-        )
+        image3_text.grid(row=list_num, column=0, padx=0, pady=0, ipadx=0, ipady=0)
         self.marge_var = tk.StringVar()
         self.marge_table = ["+", "-", "×"]
         self.marge_cb = ttk.Combobox(
@@ -266,15 +310,16 @@ class Window(ttk.Frame):
         self.marge_cb.bind("<<ComboboxSelected>>", self.marge_selected)
         self.marge_cb.current(2)
         self.marge_select = 2
-        self.marge_cb.grid(
-            row= list_num , column=1, padx=0, pady=0, ipadx=0, ipady=0
-        )
-
+        self.marge_cb.grid(row=list_num, column=1, padx=0, pady=0, ipadx=0, ipady=0)
 
         list_num += 1
-        self.check_list[2][0], self.var_list[2][0] = self.list_form(self.processes[2][0], list_num)
+        self.check_list[2][0], self.var_list[2][0] = self.list_form(
+            self.processes[2][0], list_num
+        )
         list_num += len(self.processes[2][0])
-        self.check_list[2][1], self.var_list[2][1] = self.list_form(self.processes[2][1], list_num)
+        self.check_list[2][1], self.var_list[2][1] = self.list_form(
+            self.processes[2][1], list_num
+        )
 
     def all_check(self):
         if self.header_check_bln.get():
@@ -307,7 +352,6 @@ class Window(ttk.Frame):
         self.select_cb.bind("<<ComboboxSelected>>", self.select_selected)
         self.select_cb.current(0)
         self.current_select = 0
-
         #
         self.waves_label = tk.Label(self.master, text="Plane wave")
         self.peri_label = tk.Label(self.master, text="Period")
@@ -365,8 +409,29 @@ class Window(ttk.Frame):
             self.master,
             text="Forming image",
             command=self.image_form_clicked,
-            height=6,
+            height=5,
             width=25,
+        )
+        #
+        self.unify_label = tk.Label(self.master, text="Unify")
+        self.uni_each_bln = tk.BooleanVar()
+        self.uni_each_bln.set(False)
+        self.uni_each_chk = tk.Checkbutton(
+            self.master,
+            width=7,
+            text="Each ",
+            variable=self.uni_each_bln,
+            command=self.uni_each_clicked,
+        )
+        #
+        self.uni_all_bln = tk.BooleanVar()
+        self.uni_all_bln.set(False)
+        self.uni_all_chk = tk.Checkbutton(
+            self.master,
+            width=7,
+            text="all ",
+            variable=self.uni_all_bln,
+            command=self.uni_all_clicked,
         )
         #
         self.first_label = tk.Label(self.master, text="First image")
@@ -383,7 +448,6 @@ class Window(ttk.Frame):
             self.master, width=7, text="Pro. FFT", variable=self.first_pro_FFT_bln
         )
 
-
         #
         self.second_label = tk.Label(self.master, text="Second image")
         self.second_or_chk = tk.Checkbutton(
@@ -399,8 +463,6 @@ class Window(ttk.Frame):
             self.master, width=7, text="Pro. FFT", variable=self.second_pro_FFT_bln
         )
 
-
-
         self.total_label = tk.Label(self.master, text="Total image")
         self.total_or_chk = tk.Checkbutton(
             self.master, width=7, text="Original", variable=self.total_or_bln
@@ -415,10 +477,8 @@ class Window(ttk.Frame):
             self.master, width=7, text="Pro. FFT", variable=self.total_pro_FFT_bln
         )
 
-
-
     def create_widgets_image_process(self):
-        
+
         #
         self.smooth_label = tk.Label(self.master, text="Smooth")
         self.smooth_range_label = tk.Label(self.master, text="Range")
@@ -547,9 +607,12 @@ class Window(ttk.Frame):
         self.lower_text = ttk.Label(self.master, text="lower")
 
     def create_widgets_record(self):
-        self.record_label = tk.Label(self.master, text="Record name")
-        self.record_entry = tk.Entry(self.master, width=40)
-        self.record_entry.insert(tk.END, "artificial_image")
+        self.record_fol_label = tk.Label(self.master, text="Record floder")
+        self.record_fol_entry = tk.Entry(self.master, width=25)
+        self.record_fol_entry.insert(tk.END, "Record")
+        self.record_file_label = tk.Label(self.master, text="File base")
+        self.record_file_entry = tk.Entry(self.master, width=25)
+        self.record_file_entry.insert(tk.END, "artificial_image")
         self.record_btn = tk.Button(
             self.master,
             text="Record",
@@ -574,7 +637,11 @@ class Window(ttk.Frame):
         self.pix_x_entry.place(x=250, y=y_1 + 2)
         self.pix_y_label.place(x=310, y=y_1 + 2)
         self.pix_y_entry.place(x=380, y=y_1 + 2)
-        self.image_form_btn.place(x=450, y=y_1)
+        self.image_form_btn.place(x=450, y=y_2)
+        self.unify_label.place(x=450, y=y_1)
+        self.uni_each_chk.place(x=490, y=y_1)
+        self.uni_all_chk.place(x=550, y=y_1)
+
         self.first_label.place(x=x_1, y=y_2)
         self.second_label.place(x=x_1, y=y_3)
         self.total_label.place(x=x_1, y=y_4)
@@ -590,8 +657,6 @@ class Window(ttk.Frame):
         self.total_pro_chk.place(x=x_3, y=y_4)
         self.total_or_FFT_chk.place(x=x_4, y=y_4)
         self.total_pro_FFT_chk.place(x=x_5, y=y_4)
-
-
 
     def create_layouts_image(self):
         y_1 = 360
@@ -610,7 +675,7 @@ class Window(ttk.Frame):
         x_9 = 470
         x_btn = 520
 
-        self.select_cb.place(x = 20, y = y_2)
+        self.select_cb.place(x=20, y=y_2)
         #
         self.waves_label.place(x=x_1, y=y_3)
         self.peri_label.place(x=x_2, y=y_3)
@@ -624,7 +689,7 @@ class Window(ttk.Frame):
         self.wave_btn.place(x=x_btn, y=y_3)
         #
         self.offset_label.place(x=x_1, y=y_4)
-        self.offset_amp_label.place(x=x_2, y =y_4)
+        self.offset_amp_label.place(x=x_2, y=y_4)
         self.offset_amp_entry.place(x=x_3, y=y_4)
         self.offset_btn.place(x=x_btn, y=y_4)
         #
@@ -655,29 +720,29 @@ class Window(ttk.Frame):
         x_9 = 470
         x_btn = 520
         self.smooth_label.place(x=x_1, y=y_1)
-        self.smooth_range_label.place(x = x_2,  y = y_1)
+        self.smooth_range_label.place(x=x_2, y=y_1)
         self.smooth_entry.place(x=x_3, y=y_1)
-        self.smooth_btn.place(x = x_btn,  y = y_1)
+        self.smooth_btn.place(x=x_btn, y=y_1)
         #
         self.rot_label.place(x=x_1, y=y_2)
-        self.rot_angle_label.place(x = x_2,  y = y_2)
+        self.rot_angle_label.place(x=x_2, y=y_2)
         self.rot_entry.place(x=x_4, y=y_2)
-        self.rot_btn.place(x = x_btn,  y = y_2)
+        self.rot_btn.place(x=x_btn, y=y_2)
         #
         self.resize_label.place(x=x_1, y=y_3)
         self.resize_x_label.place(x=x_2, y=y_3)
         self.resize_y_label.place(x=x_4, y=y_3)
         self.resize_x_entry.place(x=x_3, y=y_3)
         self.resize_y_entry.place(x=x_5, y=y_3)
-        self.resize_btn.place(x = x_btn,  y = y_3)
+        self.resize_btn.place(x=x_btn, y=y_3)
         #
         self.drift_label.place(x=x_1, y=y_4)
         self.drift_x_label.place(x=x_2, y=y_4)
         self.drift_y_label.place(x=x_5 - 30, y=y_4)
         self.drift_x_entry.place(x=x_4 - 30, y=y_4)
         self.drift_y_entry.place(x=x_7 - 60, y=y_4)
-        self.drift_btn.place(x = x_btn,  y = y_4)
-        
+        self.drift_btn.place(x=x_btn, y=y_4)
+
         #
         self.FFT_label.place(x=x_1, y=y_5)
         self.method_text.place(x=x_2, y=y_5)
@@ -694,8 +759,10 @@ class Window(ttk.Frame):
         self.upper_text.place(x=x_4, y=y_6)
         self.lower_text.place(x=x_4, y=y_7)
         #
-        self.record_label.place(x=x_1, y=y_8)
-        self.record_entry.place(x=x_2, y=y_8)
+        self.record_fol_label.place(x=x_1, y=y_8)
+        self.record_fol_entry.place(x=x_2, y=y_8)
+        self.record_file_label.place(x=x_5 + 20, y=y_8)
+        self.record_file_entry.place(x=x_7 - 20, y=y_8)
         self.record_btn.place(x=x_btn, y=y_8)
 
     def wave_add_clicked(self):
@@ -725,7 +792,6 @@ class Window(ttk.Frame):
         self.processes[self.current_select][1].append(var)
         self.update_process_w()
 
-
     def rot_add_clicked(self):
         var = Rotation()
         var.angle = float(self.rot_entry.get())
@@ -750,15 +816,6 @@ class Window(ttk.Frame):
         self.rewrite_process()
         self.image_formation()
         self.image_formed = True
-        if self.image_processed:
-            self.image_processing()
-            if self.FFT_processed:
-                self.FFT_processing(self.processed_image)
-
-    def image_process_clicked(self):
-        if self.image_formed:
-            self.image_processing()
-            self.image_processed = True
 
     def update_process_w(self):
         self.create_frame_datalist()
@@ -768,7 +825,7 @@ class Window(ttk.Frame):
         new_process = [[[], []], [[], []], [[], []]]
         for i in range(len(self.check_list)):
             for j in range(len(self.check_list[i])):
-                for k, chk in enumerate(len(self.check_list[i][j])):
+                for k, chk in enumerate(self.check_list[i][j]):
                     if chk.get() is False:
                         new_process[i][j].append(self.processes[i][j][k])
         self.processes = new_process
@@ -781,22 +838,21 @@ class Window(ttk.Frame):
                     params = [float(var.get()) for var in vars]
                     self.processes[i][j][k].rewrite(params)
 
-
     def record_clicked(self):
         self.record_function()
 
     def upper_value_change(self, *args):
         self.images[self.im_select].upper = int(self.upper_val.get())
-        self.contrast_change()
-
+        self.images[self.im_select].form_mod()
+        self.cont_change_show()
 
     def lower_value_change(self, *args):
         self.images[self.im_select].lower = int(self.lower_val.get())
-        self.contrast_change()
+        self.images[self.im_select].form_mod()
+        self.cont_change_show()
 
     def select_selected(self, event):
         self.current_select = self.select_cb.current()
-
 
     def marge_selected(self, event):
         self.marge_select = self.marge_cb.current()
@@ -805,6 +861,14 @@ class Window(ttk.Frame):
         self.im_select = self.contrast_cb.current()
         self.lower_val.set(self.images[self.im_select].lower)
         self.upper_val.set(self.images[self.im_select].upper)
+
+    def uni_each_clicked(self):
+        if self.uni_each_bln.get():
+            self.uni_all_bln.set(False)
+
+    def uni_all_clicked(self):
+        if self.uni_all_bln.get():
+            self.uni_each_bln.set(False)
 
     def run(self):
         self.mainloop()
