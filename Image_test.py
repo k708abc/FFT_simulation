@@ -9,7 +9,7 @@ class App(Window, functions):
 
 
 if __name__ == "__main__":
-    print("Last update: 4 th Aug. 2023 by N. Kawakami")
+    print("Last update: 9 th Aug. 2023 by N. Kawakami")
     application = tk.Tk()
     app = App(application)
     app.run()

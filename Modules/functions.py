@@ -14,7 +14,9 @@ class functions:
         for i in range(len(self.processes)):
             if i in (0, 1):
                 image_rec = [np.ones((px, py))]
+                marge_type = self.marge_type[i]
             else:
+                marge_type = self.marge_select
                 if self.marge_select == 0:
                     image_rec = [self.images[1].image + self.images[5].image]
                 elif self.marge_select == 1:
@@ -25,7 +27,14 @@ class functions:
                 k.px = px
                 k.py = py
                 image_rec.append(k.run())
-            image = np.sum(image_rec, axis=0)
+            if marge_type == 0:
+                image = np.sum(image_rec, axis=0)
+            elif self.marge_type[i] == 1:
+                image = -np.sum(image_rec, axis=0)            
+            elif self.marge_type[i] == 2:
+                image = np.ones((px, py))
+                for img in image_rec:
+                    image = image*img
             image_or = self.normarize(image)
             self.images[4 * i].image = np.copy(image_or)
             self.images[4 * i].form_mod()
@@ -136,6 +145,7 @@ class functions:
                         images_1.append(self.images[i].mod_image)
                         images_1_name.append(self.images[i].name)
                         images_1_val.append(i)
+
                 if i in (4, 5, 6, 7):
                     if var.get():
                         images_2.append(self.images[i].mod_image)
@@ -146,6 +156,7 @@ class functions:
                         images_3.append(self.images[i].mod_image)
                         images_3_name.append(self.images[i].name)
                         images_3_val.append(i)
+                self.images[i].shown = var.get()
             #
             if self.uni_all_bln.get():
                 offset = 10
@@ -277,23 +288,25 @@ class functions:
         if self.show_type == 0:
             self.images[self.im_select].show()
         elif self.show_type == 1:
-            x1 = self.images[self.im_select].pos_x1
-            x2 = self.images[self.im_select].pos_x2
-            y1 = self.images[self.im_select].pos_y1
-            y2 = self.images[self.im_select].pos_y2
-            if self.im_select in (0, 1, 2, 3):
-                self.image1[y1:y2, x1:x2] = self.images[self.im_select].mod_image
-                cv2.imshow("First images", self.image1)
-            elif self.im_select in (4, 5, 6, 7):
-                self.image2[y1:y2, x1:x2] = self.images[self.im_select].mod_image
-                cv2.imshow("Second images", self.image2)
-            else:
-                self.image3[y1:y2, x1:x2] = self.images[self.im_select].mod_image
-                cv2.imshow("Total images", self.image3)
+            if self.images[self.im_select].shown:
+                x1 = self.images[self.im_select].pos_x1
+                x2 = self.images[self.im_select].pos_x2
+                y1 = self.images[self.im_select].pos_y1
+                y2 = self.images[self.im_select].pos_y2
+                if self.im_select in (0, 1, 2, 3):
+                    self.image1[y1:y2, x1:x2] = self.images[self.im_select].mod_image
+                    cv2.imshow("First images", self.image1)
+                elif self.im_select in (4, 5, 6, 7):
+                    self.image2[y1:y2, x1:x2] = self.images[self.im_select].mod_image
+                    cv2.imshow("Second images", self.image2)
+                else:
+                    self.image3[y1:y2, x1:x2] = self.images[self.im_select].mod_image
+                    cv2.imshow("Total images", self.image3)
         else:
-            x1 = self.images[self.im_select].pos_x1
-            x2 = self.images[self.im_select].pos_x2
-            y1 = self.images[self.im_select].pos_y1
-            y2 = self.images[self.im_select].pos_y2
-            self.int_image[y1:y2, x1:x2] = self.images[self.im_select].mod_image
-            cv2.imshow("Images", self.int_image)
+            if self.images[self.im_select].shown:
+                x1 = self.images[self.im_select].pos_x1
+                x2 = self.images[self.im_select].pos_x2
+                y1 = self.images[self.im_select].pos_y1
+                y2 = self.images[self.im_select].pos_y2
+                self.int_image[y1:y2, x1:x2] = self.images[self.im_select].mod_image
+                cv2.imshow("Images", self.int_image)

@@ -338,7 +338,7 @@ class FFT:
             center_x = int((width - 1) / 2)
             center_y = int((height - 1) / 2)
         #
-        value = max(
+        value = np.average([
             image_mod[center_y - 1][center_x - 1],
             image_mod[center_y - 1][center_x],
             image_mod[center_y - 1][center_x + 1],
@@ -347,6 +347,7 @@ class FFT:
             image_mod[center_y + 1][center_x - 1],
             image_mod[center_y + 1][center_x],
             image_mod[center_y + 1][center_x + 1],
+        ]
         )
         #
         image_mod[center_y - 1][center_x - 1] = value
@@ -391,10 +392,14 @@ class MyImage:
 
     def unshow(self):
         if self.shown:
-            cv2.destroyWindow(self.name)
+            try:
+                cv2.destroyWindow(self.name)
+            except:
+                pass
             self.shown = False
 
     def form_mod(self):
+
         image_mod = (self.image) * 255
         image_mod = image_mod.astype(np.uint8)
         self.image_uint8 = image_mod

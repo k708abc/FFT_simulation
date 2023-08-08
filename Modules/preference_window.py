@@ -58,7 +58,7 @@ class Window(ttk.Frame):
 
         for i, val in enumerate(self.images):
             val.name = self.contrast_table[i]
-
+        self.marge_type = [0, 0]
         self.create_frame_header()
         self.bool_set()
         self.create_frame_datalist()
@@ -268,10 +268,24 @@ class Window(ttk.Frame):
             self.frame_list, width=10, text="First image", background=color
         )
         image1_text.grid(row=2, column=0, padx=0, pady=0, ipadx=0, ipady=0)
+        self.marge1_var = tk.StringVar()
+        self.marge1_table = ["+", "-", "×"]
+        self.marge1_cb = ttk.Combobox(
+            self.frame_list,
+            textvariable=self.marge1_var,
+            values=self.marge1_table,
+            width=18,
+        )
+        self.marge1_cb.bind("<<ComboboxSelected>>", self.marge1_selected)
+        self.marge1_cb.current(self.marge_type[0])
+        self.marge1_cb.grid(row=2, column=1, padx=0, pady=0, ipadx=0, ipady=0)
+
+
         list_num = 3
         self.check_list[0][0], self.var_list[0][0] = self.list_form(
             self.processes[0][0], list_num
         )
+
         list_num += len(self.processes[0][0])
         self.check_list[0][1], self.var_list[0][1] = self.list_form(
             self.processes[0][1], list_num
@@ -284,6 +298,20 @@ class Window(ttk.Frame):
         )
         image2_text.grid(row=list_num, column=0, padx=0, pady=0, ipadx=0, ipady=0)
 
+        self.marge2_table = ["+", "-", "×"]
+        self.marge2_var = tk.StringVar()
+        self.marge2_cb = ttk.Combobox(
+            self.frame_list,
+            textvariable=self.marge2_var,
+            values=self.marge2_table,
+            width=18,
+        )
+        self.marge2_cb.bind("<<ComboboxSelected>>", self.marge2_selected)
+        self.marge2_cb.current(self.marge_type[1])
+        self.marge2_cb.grid(row=list_num, column=1, padx=0, pady=0, ipadx=0, ipady=0)
+
+
+
         list_num += 1
         self.check_list[1][0], self.var_list[1][0] = self.list_form(
             self.processes[1][0], list_num
@@ -292,6 +320,10 @@ class Window(ttk.Frame):
         self.check_list[1][1], self.var_list[1][1] = self.list_form(
             self.processes[1][1], list_num
         )
+
+
+
+
         #
         color = "#FFCDE2"
         list_num += len(self.processes[1][1]) + 1
@@ -853,6 +885,13 @@ class Window(ttk.Frame):
 
     def select_selected(self, event):
         self.current_select = self.select_cb.current()
+
+
+    def marge1_selected(self, event):
+        self.marge_type[0] = self.marge1_cb.current()
+
+    def marge2_selected(self, event):
+        self.marge_type[1] = self.marge2_cb.current()
 
     def marge_selected(self, event):
         self.marge_select = self.marge_cb.current()
