@@ -136,6 +136,11 @@ class Smothing:
 
     def run(self):
         image_mod = ndimage.gaussian_filter(self.image, float(self.range))
+        """
+        image_mod = cv2.GaussianBlur(
+            self.image, (int(self.range), int(self.range)), float(self.range)
+        )
+        """
         return image_mod
 
     def rec(self):
@@ -189,7 +194,7 @@ class Resize:
             return self.size_y
 
     def run(self):
-        mod_image = cv2.resize(self.image, (self.size_x, self.size_y))
+        mod_image = cv2.resize(self.image, (int(self.size_x), int(self.size_y)))
         return mod_image
 
     def rec(self):
@@ -198,12 +203,11 @@ class Resize:
             + "\n\t"
             + "size_x: "
             + "\t"
-            + str(self.size_x)
-            + "\n"
+            + str(int(self.size_x))
             + "\n\t"
             + "size_y: "
             + "\t"
-            + str(self.size_y)
+            + str(int(self.size_y))
             + "\n"
         )
 
@@ -261,7 +265,6 @@ class Drift:
             + "x: "
             + "\t"
             + str(self.x)
-            + "\n"
             + "\n\t"
             + "y: "
             + "\t"

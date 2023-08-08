@@ -53,13 +53,14 @@ class functions:
         self.show_image()
 
     def form_each(self, img_list, name_list, val_list, offset):
-        x = 0
+        xmax = 0
         y = 0
         for img in img_list:
-            x += img.shape[1] + 10
+            xmax = max(xmax, img.shape[1])
             y = max(y, img.shape[0])
+        x = (xmax + 10) * len(img_list) + 10
         y = y + 30
-        image = np.zeros((y, x))
+        image = np.ones((y, x), dtype=np.uint8) * 40
         x_total = 10
         for img, name, i in zip(img_list, name_list, val_list):
             height, width = img.shape[:2]
@@ -78,7 +79,7 @@ class functions:
                 thickness=1,
                 lineType=cv2.LINE_4,
             )
-            x_total += width + 10
+            x_total += xmax + 10
         return image
 
     def clese_each(self):
@@ -160,7 +161,7 @@ class functions:
                 if self.uni_all_bln.get():
                     offset += len(self.image1)
             else:
-                self.image1 = np.zeros((0, 0))
+                self.image1 = np.zeros((0, 0), dtype=np.uint8)
             if len(images_2) != 0:
                 self.image2 = self.form_each(
                     images_2, images_2_name, images_2_val, offset
@@ -171,7 +172,7 @@ class functions:
                 if self.uni_all_bln.get():
                     offset += len(self.image2)
             else:
-                self.image2 = np.zeros((0, 0))
+                self.image2 = np.zeros((0, 0), dtype=np.uint8)
             if len(images_3) != 0:
                 self.image3 = self.form_each(
                     images_3, images_3_name, images_3_val, offset
@@ -180,7 +181,7 @@ class functions:
                     cv2.imshow("Total images", self.image3)
                     self.show_type = 1
             else:
-                self.image3 = np.zeros((0, 0))
+                self.image3 = np.zeros((0, 0), dtype=np.uint8)
             if self.uni_all_bln.get():
                 self.show_type = 2
                 y1, x1 = self.image1.shape[:2]
@@ -189,7 +190,7 @@ class functions:
                 #
                 width = max(x1, x2, x3)
                 height = y1 + y2 + y3 + 10
-                self.int_image = np.zeros((height, width))
+                self.int_image = np.zeros((height, width), dtype=np.uint8)
                 self.int_image[10 : y1 + 10, 0:x1] = self.image1
                 self.int_image[y1 + 10 : y1 + y2 + 10, 0:x2] = self.image2
                 self.int_image[y1 + y2 + 10 : y1 + y2 + y3 + 10, 0:x3] = self.image3
@@ -256,7 +257,12 @@ class functions:
                 for i in self.processes[1][1]:
                     f.write(i.rec() + "\n")
                 f.write(
-                    "Total image:" + "\t" + "Type: " + "\t" + str(self.marge_cb) + "\n"
+                    "Total image:"
+                    + "\t"
+                    + "Type: "
+                    + "\t"
+                    + str(self.marge_cb.get())
+                    + "\n"
                 )
                 for i in self.processes[2][0]:
                     f.write(i.rec() + "\n")
@@ -285,4 +291,9 @@ class functions:
                 self.image3[y1:y2, x1:x2] = self.images[self.im_select].mod_image
                 cv2.imshow("Total images", self.image3)
         else:
+            x1 = self.images[self.im_select].pos_x1
+            x2 = self.images[self.im_select].pos_x2
+            y1 = self.images[self.im_select].pos_y1
+            y2 = self.images[self.im_select].pos_y2
             self.int_image[y1:y2, x1:x2] = self.images[self.im_select].mod_image
+            cv2.imshow("Images", self.int_image)

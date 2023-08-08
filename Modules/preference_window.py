@@ -209,7 +209,7 @@ class Window(ttk.Frame):
         var_list = []
         for i in range(len(process)):
             var_list.append([])
-            if (start_val + i) % 2 == 0:
+            if (i) % 2 == 0:
                 color = "#cdfff7"  # blue
             else:
                 color = "white"
