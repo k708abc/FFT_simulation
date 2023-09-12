@@ -12,16 +12,15 @@ class functions:
         px = int(self.pix_x_entry.get())
         py = int(self.pix_y_entry.get())
         for i in range(len(self.processes)):
+            marge_type = self.marge_type[i]
             if i in (0, 1):
                 image_rec = [np.ones((px, py))]
-                marge_type = self.marge_type[i]
             else:
-                marge_type = self.marge_select
-                if self.marge_select == 0:
+                if marge_type == 0:
                     image_rec = [self.images[1].image + self.images[5].image]
-                elif self.marge_select == 1:
+                elif marge_type == 1:
                     image_rec = [self.images[1].image - self.images[5].image]
-                elif self.marge_select == 2:
+                elif marge_type == 2:
                     image_rec = [self.images[1].image * self.images[5].image]
             for k in self.processes[i][0]:
                 k.px = px
@@ -29,12 +28,12 @@ class functions:
                 image_rec.append(k.run())
             if marge_type == 0:
                 image = np.sum(image_rec, axis=0)
-            elif self.marge_type[i] == 1:
-                image = -np.sum(image_rec, axis=0)            
-            elif self.marge_type[i] == 2:
+            elif marge_type == 1:
+                image = -np.sum(image_rec, axis=0)
+            elif marge_type == 2:
                 image = np.ones((px, py))
                 for img in image_rec:
-                    image = image*img
+                    image = image * img
             image_or = self.normarize(image)
             self.images[4 * i].image = np.copy(image_or)
             self.images[4 * i].form_mod()
@@ -257,14 +256,28 @@ class functions:
         if self.image_formed:
             with open(txt_name, mode="w") as f:
                 f.write("Name: " + str(self.record_file_entry.get()) + "\n\n")
-                f.write("First image:" + "\n")
+                f.write(
+                    "First image:"
+                    + "\t"
+                    + "Type: "
+                    + "\t"
+                    + str(self.marge1_cb.get())
+                    + "\n"
+                )
                 for i in self.processes[0][0]:
-                    f.write(i.rec() + "\n")
+                    f.write(i.rec())
                 for i in self.processes[0][1]:
                     f.write(i.rec() + "\n")
-                f.write("Second image:" + "\n")
+                f.write(
+                    "Second image:"
+                    + "\t"
+                    + "Type: "
+                    + "\t"
+                    + str(self.marge2_cb.get())
+                    + "\n"
+                )
                 for i in self.processes[1][0]:
-                    f.write(i.rec() + "\n")
+                    f.write(i.rec())
                 for i in self.processes[1][1]:
                     f.write(i.rec() + "\n")
                 f.write(
@@ -276,7 +289,7 @@ class functions:
                     + "\n"
                 )
                 for i in self.processes[2][0]:
-                    f.write(i.rec() + "\n")
+                    f.write(i.rec())
                 for i in self.processes[2][1]:
                     f.write(i.rec() + "\n")
 

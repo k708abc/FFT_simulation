@@ -58,7 +58,7 @@ class Window(ttk.Frame):
 
         for i, val in enumerate(self.images):
             val.name = self.contrast_table[i]
-        self.marge_type = [0, 0]
+        self.marge_type = [0, 0, 2]
         self.create_frame_header()
         self.bool_set()
         self.create_frame_datalist()
@@ -340,8 +340,7 @@ class Window(ttk.Frame):
             width=18,
         )
         self.marge_cb.bind("<<ComboboxSelected>>", self.marge_selected)
-        self.marge_cb.current(2)
-        self.marge_select = 2
+        self.marge_cb.current(self.marge_type[2])
         self.marge_cb.grid(row=list_num, column=1, padx=0, pady=0, ipadx=0, ipady=0)
 
         list_num += 1
@@ -894,7 +893,7 @@ class Window(ttk.Frame):
         self.marge_type[1] = self.marge2_cb.current()
 
     def marge_selected(self, event):
-        self.marge_select = self.marge_cb.current()
+        self.marge_type[2] = self.marge_cb.current()
 
     def cb_contrast_selected(self, event):
         self.im_select = self.contrast_cb.current()
