@@ -13,6 +13,7 @@ class functions:
         py = int(self.pix_y_entry.get())
         for i in range(len(self.processes)):
             marge_type = self.marge_type[i]
+            marge_type_pro = self.marge_pro_type[i]
             if i in (0, 1):
                 image_rec = [np.ones((px, py))]
             else:
@@ -25,7 +26,7 @@ class functions:
             for k in self.processes[i][0]:
                 k.px = px
                 k.py = py
-                image_rec.append(k.run())
+                image_rec.append(k.run_com())
             if marge_type == 0:
                 image = np.sum(image_rec, axis=0)
             elif marge_type == 1:
@@ -40,7 +41,8 @@ class functions:
             #
             for k in self.processes[i][1]:
                 k.image = image
-                image = k.run()
+                k.cal = marge_type_pro
+                image = k.run_pro()
             image_pro = self.normarize(image)
             self.images[4 * i + 1].image = np.copy(image_pro)
             self.images[4 * i + 1].form_mod()
@@ -259,9 +261,13 @@ class functions:
                 f.write(
                     "First image:"
                     + "\t"
-                    + "Type: "
+                    + "Components: "
                     + "\t"
                     + str(self.marge1_cb.get())
+                    + "\t"
+                    + "Processes: "
+                    + "\t"
+                    + str(self.marge1_pro_cb.get())
                     + "\n"
                 )
                 for i in self.processes[0][0]:
@@ -274,6 +280,10 @@ class functions:
                     + "Type: "
                     + "\t"
                     + str(self.marge2_cb.get())
+                    + "\t"
+                    + "Processes: "
+                    + "\t"
+                    + str(self.marge2_pro_cb.get())
                     + "\n"
                 )
                 for i in self.processes[1][0]:
@@ -286,6 +296,10 @@ class functions:
                     + "Type: "
                     + "\t"
                     + str(self.marge_cb.get())
+                    + "\t"
+                    + "Processes: "
+                    + "\t"
+                    + str(self.marge_pro_cb.get())
                     + "\n"
                 )
                 for i in self.processes[2][0]:

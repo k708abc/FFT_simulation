@@ -59,6 +59,7 @@ class Window(ttk.Frame):
         for i, val in enumerate(self.images):
             val.name = self.contrast_table[i]
         self.marge_type = [0, 0, 2]
+        self.marge_pro_type = [0, 0, 0]
         self.create_frame_header()
         self.bool_set()
         self.create_frame_datalist()
@@ -68,7 +69,7 @@ class Window(ttk.Frame):
         self.create_widgets_image_process()
         self.create_widgets_contrast()
         self.create_widgets_record()
-        self.create_layputs_foam()
+        self.create_layputs_form()
         self.create_layouts_image()
         self.create_layouts_process()
         self.image_formed = False
@@ -115,7 +116,7 @@ class Window(ttk.Frame):
         self.header2 = tk.Label(
             self.frame_list_index,
             width=28,
-            text="Components or process",
+            text="Components and process",
             background="white",
         )
         self.header3 = tk.Label(
@@ -180,7 +181,7 @@ class Window(ttk.Frame):
 
     def form_canvas_datalist(self):
         self.canvas.grid(
-            row=1, rowspan=max(1, self.num_total + 3), column=0, columnspan=5
+            row=1, rowspan=max(1, self.num_total + 6), column=0, columnspan=5
         )
         #
         vbar = tk.ttk.Scrollbar(self.master, orient=tk.VERTICAL)
@@ -190,10 +191,10 @@ class Window(ttk.Frame):
         #
         self.canvas.config(yscrollcommand=vbar.set)
         #
-        sc_hgt = int(150 / 6 * (self.num_total + 3))
+        sc_hgt = int(150 / 6 * (self.num_total + 6))
         self.canvas.config(scrollregion=(0, 0, 500, sc_hgt))
         #
-        if self.num_total + 3 >= 8:
+        if self.num_total + 6 >= 8:
             self.frame_list.bind_all("<MouseWheel>", self._on_mousewheel)
         else:
             self.frame_list.bind_all("<MouseWheel>", self._no_mousewheel)
@@ -268,25 +269,48 @@ class Window(ttk.Frame):
             self.frame_list, width=10, text="First image", background=color
         )
         image1_text.grid(row=2, column=0, padx=0, pady=0, ipadx=0, ipady=0)
+        image1_comp_text = tk.Label(
+            self.frame_list, width=10, text="Components", background=color
+        )
+        image1_comp_text.grid(row=2, column=1, padx=0, pady=0, ipadx=0, ipady=0)
         self.marge1_var = tk.StringVar()
         self.marge1_table = ["+", "-", "×"]
         self.marge1_cb = ttk.Combobox(
             self.frame_list,
             textvariable=self.marge1_var,
             values=self.marge1_table,
-            width=18,
+            width=5,
         )
         self.marge1_cb.bind("<<ComboboxSelected>>", self.marge1_selected)
         self.marge1_cb.current(self.marge_type[0])
-        self.marge1_cb.grid(row=2, column=1, padx=0, pady=0, ipadx=0, ipady=0)
-
+        self.marge1_cb.grid(row=2, column=2, padx=0, pady=0, ipadx=0, ipady=0)
 
         list_num = 3
         self.check_list[0][0], self.var_list[0][0] = self.list_form(
             self.processes[0][0], list_num
         )
 
-        list_num += len(self.processes[0][0])
+        list_num += len(self.processes[0][0]) + 1
+
+        image1_pro_text = tk.Label(
+            self.frame_list, width=10, text="Processes", background=color
+        )
+        image1_pro_text.grid(row=list_num, column=1, padx=0, pady=0, ipadx=0, ipady=0)
+
+        self.marge1_pro_var = tk.StringVar()
+        self.marge1_pro_cb = ttk.Combobox(
+            self.frame_list,
+            textvariable=self.marge1_pro_var,
+            values=self.marge1_table,
+            width=5,
+        )
+        self.marge1_pro_cb.bind("<<ComboboxSelected>>", self.marge1_pro_selected)
+        self.marge1_pro_cb.current(self.marge_pro_type[0])
+        self.marge1_pro_cb.grid(
+            row=list_num, column=2, padx=0, pady=0, ipadx=0, ipady=0
+        )
+        list_num += 1
+
         self.check_list[0][1], self.var_list[0][1] = self.list_form(
             self.processes[0][1], list_num
         )
@@ -298,31 +322,50 @@ class Window(ttk.Frame):
         )
         image2_text.grid(row=list_num, column=0, padx=0, pady=0, ipadx=0, ipady=0)
 
+        image2_comp_text = tk.Label(
+            self.frame_list, width=10, text="Components", background=color
+        )
+        image2_comp_text.grid(row=list_num, column=1, padx=0, pady=0, ipadx=0, ipady=0)
+
         self.marge2_table = ["+", "-", "×"]
         self.marge2_var = tk.StringVar()
         self.marge2_cb = ttk.Combobox(
             self.frame_list,
             textvariable=self.marge2_var,
             values=self.marge2_table,
-            width=18,
+            width=5,
         )
         self.marge2_cb.bind("<<ComboboxSelected>>", self.marge2_selected)
         self.marge2_cb.current(self.marge_type[1])
-        self.marge2_cb.grid(row=list_num, column=1, padx=0, pady=0, ipadx=0, ipady=0)
-
-
+        self.marge2_cb.grid(row=list_num, column=2, padx=0, pady=0, ipadx=0, ipady=0)
 
         list_num += 1
         self.check_list[1][0], self.var_list[1][0] = self.list_form(
             self.processes[1][0], list_num
         )
-        list_num += len(self.processes[1][0])
+        list_num += len(self.processes[1][0]) + 1
+        image2_pro_text = tk.Label(
+            self.frame_list, width=10, text="Processes", background=color
+        )
+        image2_pro_text.grid(row=list_num, column=1, padx=0, pady=0, ipadx=0, ipady=0)
+
+        self.marge2_pro_var = tk.StringVar()
+        self.marge2_pro_cb = ttk.Combobox(
+            self.frame_list,
+            textvariable=self.marge2_pro_var,
+            values=self.marge2_table,
+            width=5,
+        )
+        self.marge2_pro_cb.bind("<<ComboboxSelected>>", self.marge2_pro_selected)
+        self.marge2_pro_cb.current(self.marge_pro_type[1])
+        self.marge2_pro_cb.grid(
+            row=list_num, column=2, padx=0, pady=0, ipadx=0, ipady=0
+        )
+        list_num += 1
+
         self.check_list[1][1], self.var_list[1][1] = self.list_form(
             self.processes[1][1], list_num
         )
-
-
-
 
         #
         color = "#FFCDE2"
@@ -331,23 +374,44 @@ class Window(ttk.Frame):
             self.frame_list, width=10, text="Total image", background=color
         )
         image3_text.grid(row=list_num, column=0, padx=0, pady=0, ipadx=0, ipady=0)
+
+        image3_comp_text = tk.Label(
+            self.frame_list, width=10, text="Components", background=color
+        )
+        image3_comp_text.grid(row=list_num, column=1, padx=0, pady=0, ipadx=0, ipady=0)
         self.marge_var = tk.StringVar()
         self.marge_table = ["+", "-", "×"]
         self.marge_cb = ttk.Combobox(
             self.frame_list,
             textvariable=self.marge_var,
             values=self.marge_table,
-            width=18,
+            width=5,
         )
         self.marge_cb.bind("<<ComboboxSelected>>", self.marge_selected)
         self.marge_cb.current(self.marge_type[2])
-        self.marge_cb.grid(row=list_num, column=1, padx=0, pady=0, ipadx=0, ipady=0)
+        self.marge_cb.grid(row=list_num, column=2, padx=0, pady=0, ipadx=0, ipady=0)
 
         list_num += 1
         self.check_list[2][0], self.var_list[2][0] = self.list_form(
             self.processes[2][0], list_num
         )
-        list_num += len(self.processes[2][0])
+        list_num += len(self.processes[2][0]) + 1
+        image3_pro_text = tk.Label(
+            self.frame_list, width=10, text="Processes", background=color
+        )
+        image3_pro_text.grid(row=list_num, column=1, padx=0, pady=0, ipadx=0, ipady=0)
+
+        self.marge3_pro_var = tk.StringVar()
+        self.marge_pro_cb = ttk.Combobox(
+            self.frame_list,
+            textvariable=self.marge3_pro_var,
+            values=self.marge_table,
+            width=5,
+        )
+        self.marge_pro_cb.bind("<<ComboboxSelected>>", self.marge_pro_selected)
+        self.marge_pro_cb.current(self.marge_pro_type[2])
+        self.marge_pro_cb.grid(row=list_num, column=2, padx=0, pady=0, ipadx=0, ipady=0)
+        list_num += 1
         self.check_list[2][1], self.var_list[2][1] = self.list_form(
             self.processes[2][1], list_num
         )
@@ -383,6 +447,19 @@ class Window(ttk.Frame):
         self.select_cb.bind("<<ComboboxSelected>>", self.select_selected)
         self.select_cb.current(0)
         self.current_select = 0
+
+        self.select2_var = tk.StringVar()
+        self.select2_table = ["Component", "Process"]
+        self.select2_cb = ttk.Combobox(
+            self.master,
+            textvariable=self.select2_var,
+            values=self.select2_table,
+            width=20,
+        )
+        self.select2_cb.bind("<<ComboboxSelected>>", self.select2_selected)
+        self.select2_cb.current(0)
+        self.current2_select = 0
+
         #
         self.waves_label = tk.Label(self.master, text="Plane wave")
         self.peri_label = tk.Label(self.master, text="Period")
@@ -522,6 +599,7 @@ class Window(ttk.Frame):
             height=1,
             width=15,
         )
+        self.smooth_btn["state"] = DISABLED
 
         #
         self.rot_label = tk.Label(self.master, text="Rotation")
@@ -535,6 +613,7 @@ class Window(ttk.Frame):
             height=1,
             width=15,
         )
+        self.rot_btn["state"] = DISABLED
         #
         self.resize_label = tk.Label(self.master, text="Resize")
         self.resize_x_label = tk.Label(self.master, text="x")
@@ -550,6 +629,8 @@ class Window(ttk.Frame):
             height=1,
             width=15,
         )
+        self.resize_btn["state"] = DISABLED
+
         #
         self.drift_label = tk.Label(self.master, text="Drift")
         self.drift_x_label = tk.Label(self.master, text="x (pix/scan)")
@@ -565,6 +646,8 @@ class Window(ttk.Frame):
             height=1,
             width=15,
         )
+        self.drift_btn["state"] = DISABLED
+
         #
         self.FFT_label = tk.Label(self.master, text="FFT")
         #
@@ -652,7 +735,7 @@ class Window(ttk.Frame):
             width=15,
         )
 
-    def create_layputs_foam(self):
+    def create_layputs_form(self):
         y_1 = 280
         y_2 = y_1 + 30
         y_3 = y_2 + 30
@@ -707,6 +790,7 @@ class Window(ttk.Frame):
         x_btn = 520
 
         self.select_cb.place(x=20, y=y_2)
+        self.select2_cb.place(x=170, y=y_2)
         #
         self.waves_label.place(x=x_1, y=y_3)
         self.peri_label.place(x=x_2, y=y_3)
@@ -802,19 +886,19 @@ class Window(ttk.Frame):
         var.phase = float(self.phase_entry.get())
         var.amp = float(self.amp_entry.get())
         var.angle = float(self.angle_entry.get())
-        self.processes[self.current_select][0].append(var)
+        self.processes[self.current_select][self.current2_select].append(var)
         self.update_process_w()
 
     def offset_add_clicked(self):
         var = Random_offset()
         var.amp = float(self.offset_amp_entry.get())
-        self.processes[self.current_select][0].append(var)
+        self.processes[self.current_select][self.current2_select].append(var)
         self.update_process_w()
 
     def noise_add_clicked(self):
         var = Noise()
         var.amp = float(self.noise_amp_entry.get())
-        self.processes[self.current_select][0].append(var)
+        self.processes[self.current_select][self.current2_select].append(var)
         self.update_process_w()
 
     def smooth_add_clicked(self):
@@ -884,16 +968,35 @@ class Window(ttk.Frame):
 
     def select_selected(self, event):
         self.current_select = self.select_cb.current()
+        self.rot_btn["state"] = DISABLED
+        self.smooth_btn["state"] = DISABLED
+        self.resize_btn["state"] = DISABLED
+        self.drift_btn["state"] = DISABLED
 
+    def select2_selected(self, event):
+        self.current2_select = self.select2_cb.current()
+        self.rot_btn["state"] = NORMAL
+        self.smooth_btn["state"] = NORMAL
+        self.resize_btn["state"] = NORMAL
+        self.drift_btn["state"] = NORMAL
 
     def marge1_selected(self, event):
         self.marge_type[0] = self.marge1_cb.current()
 
+    def marge1_pro_selected(self, event):
+        self.marge_pro_type[0] = self.marge1_pro_cb.current()
+
     def marge2_selected(self, event):
         self.marge_type[1] = self.marge2_cb.current()
 
+    def marge2_pro_selected(self, event):
+        self.marge_pro_type[1] = self.marge2_pro_cb.current()
+
     def marge_selected(self, event):
         self.marge_type[2] = self.marge_cb.current()
+
+    def marge_pro_selected(self, event):
+        self.marge_pro_type[2] = self.marge_pro_cb.current()
 
     def cb_contrast_selected(self, event):
         self.im_select = self.contrast_cb.current()

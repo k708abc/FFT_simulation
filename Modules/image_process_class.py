@@ -13,6 +13,8 @@ class Plane_wave:
     px = None
     py = None
     params = ["Period", "Phase", "Amp.", "Angle"]
+    image = None
+    cal = None
 
     def rewrite(self, params):
         self.period = params[0]
@@ -37,7 +39,7 @@ class Plane_wave:
         print("Amp.:" + str(self.amp))
         print("angle:" + str(self.angle))
 
-    def run(self):
+    def run_com(self):
         k = 2 * np.pi / self.period
         kx = k * np.cos(-self.angle / 180 * np.pi)
         ky = k * np.sin(-self.angle / 180 * np.pi)
@@ -46,6 +48,20 @@ class Plane_wave:
         XX, YY = np.meshgrid(X, Y)
         data = np.sin(kx * XX + ky * YY - self.phase) * self.amp
         return data
+
+    def run_pro(self):
+        self.px = len(self.image[1])
+        self.py = len(self.image[0])
+        data = self.run_com()
+        if self.cal == 0:
+            image_temp = self.image + data
+        elif self.cal == 1:
+            image_temp = self.image - data
+        elif self.cal == 2:
+            image_temp = self.image * data
+        else:
+            print("Error")
+        return image_temp
 
     def rec(self):
         return (
@@ -73,6 +89,8 @@ class Random_offset:
     name = "Random offset"
     amp = None
     params = ["Amp."]
+    image = None
+    cal = None
 
     def rewrite(self, params):
         self.amp = params[0]
@@ -85,12 +103,26 @@ class Random_offset:
         print(self.name)
         print("Amp.:" + str(self.amp))
 
-    def run(self):
+    def run_com(self):
         noise = np.random.rand(self.py) * self.amp
         data = np.zeros((self.px, self.py))
         data[:] = noise
         data = data.T
         return data
+
+    def run_pro(self):
+        self.px = len(self.image[1])
+        self.py = len(self.image[0])
+        data = self.run_com()
+        if self.cal == 0:
+            image_temp = self.image + data
+        elif self.cal == 1:
+            image_temp = self.image - data
+        elif self.cal == 2:
+            image_temp = self.image * data
+        else:
+            print("Error")
+        return image_temp
 
     def rec(self):
         return "Random_offset:" + "\n\t" + "Amplitude:" + "\t" + str(self.amp) + "\n"
@@ -100,6 +132,8 @@ class Noise:
     name = "Noise"
     amp = None
     params = ["Amp."]
+    image = None
+    cal = None
 
     def rewrite(self, params):
         self.amp = params[0]
@@ -112,10 +146,24 @@ class Noise:
         print(self.name)
         print("Amp.:" + str(self.amp))
 
-    def run(self):
+    def run_com(self):
         noise = np.random.rand(self.px * self.py) * self.amp
         data = noise.reshape([self.py, self.px])
         return data
+
+    def run_pro(self):
+        self.px = len(self.image[1])
+        self.py = len(self.image[0])
+        data = self.run_com()
+        if self.cal == 0:
+            image_temp = self.image + data
+        elif self.cal == 1:
+            image_temp = self.image - data
+        elif self.cal == 2:
+            image_temp = self.image * data
+        else:
+            print("Error")
+        return image_temp
 
     def rec(self):
         return "Random_offset:" + "\n\t" + "Amplitude:" + "\t" + str(self.amp) + "\n"
@@ -126,6 +174,7 @@ class Smothing:
     image = None
     range = None
     params = ["range"]
+    cal = None
 
     def rewrite(self, params):
         self.range = params[0]
@@ -134,7 +183,7 @@ class Smothing:
         if p_name == "range":
             return self.range
 
-    def run(self):
+    def run_pro(self):
         image_mod = ndimage.gaussian_filter(self.image, float(self.range))
         """
         image_mod = cv2.GaussianBlur(
@@ -152,6 +201,7 @@ class Rotation:
     image = None
     angle = None
     params = ["angle"]
+    cal = None
 
     def rewrite(self, params):
         self.val = params[0]
@@ -163,7 +213,7 @@ class Rotation:
     def rec(self):
         return "Rotation:" + "\n\t" "angle: " + "\t" + str(self.angle) + "\n"
 
-    def run(self):
+    def run_pro(self):
         width, height = self.image.shape[1], self.image.shape[0]
         center = (int(width / 2), int(height / 2))
         affine_trans = cv2.getRotationMatrix2D(center, self.angle, 1)
@@ -182,6 +232,7 @@ class Resize:
     size_x = None
     size_y = None
     params = ["size_x", "size_y"]
+    cal = None
 
     def rewrite(self, params):
         self.size_x = params[0]
@@ -193,7 +244,7 @@ class Resize:
         if p_name == "size_y":
             return self.size_y
 
-    def run(self):
+    def run_pro(self):
         mod_image = cv2.resize(self.image, (int(self.size_x), int(self.size_y)))
         return mod_image
 
@@ -218,6 +269,7 @@ class Drift:
     x = None
     y = None
     params = ["x", "y"]
+    cal = None
 
     def rewrite(self, params):
         self.x = params[0]
@@ -229,7 +281,7 @@ class Drift:
         if p_name == "y":
             return self.y
 
-    def run(self):
+    def run_pro(self):
         ps_x = len(self.image)
         ps_y = len(self.image[0])
         #
@@ -338,16 +390,17 @@ class FFT:
             center_x = int((width - 1) / 2)
             center_y = int((height - 1) / 2)
         #
-        value = np.average([
-            image_mod[center_y - 1][center_x - 1],
-            image_mod[center_y - 1][center_x],
-            image_mod[center_y - 1][center_x + 1],
-            image_mod[center_y][center_x - 1],
-            image_mod[center_y][center_x + 1],
-            image_mod[center_y + 1][center_x - 1],
-            image_mod[center_y + 1][center_x],
-            image_mod[center_y + 1][center_x + 1],
-        ]
+        value = np.average(
+            [
+                image_mod[center_y - 1][center_x - 1],
+                image_mod[center_y - 1][center_x],
+                image_mod[center_y - 1][center_x + 1],
+                image_mod[center_y][center_x - 1],
+                image_mod[center_y][center_x + 1],
+                image_mod[center_y + 1][center_x - 1],
+                image_mod[center_y + 1][center_x],
+                image_mod[center_y + 1][center_x + 1],
+            ]
         )
         #
         image_mod[center_y - 1][center_x - 1] = value
