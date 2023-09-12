@@ -968,17 +968,19 @@ class Window(ttk.Frame):
 
     def select_selected(self, event):
         self.current_select = self.select_cb.current()
-        self.rot_btn["state"] = DISABLED
-        self.smooth_btn["state"] = DISABLED
-        self.resize_btn["state"] = DISABLED
-        self.drift_btn["state"] = DISABLED
 
     def select2_selected(self, event):
         self.current2_select = self.select2_cb.current()
-        self.rot_btn["state"] = NORMAL
-        self.smooth_btn["state"] = NORMAL
-        self.resize_btn["state"] = NORMAL
-        self.drift_btn["state"] = NORMAL
+        if self.current2_select == 1:
+            self.rot_btn["state"] = NORMAL
+            self.smooth_btn["state"] = NORMAL
+            self.resize_btn["state"] = NORMAL
+            self.drift_btn["state"] = NORMAL
+        else:
+            self.rot_btn["state"] = DISABLED
+            self.smooth_btn["state"] = DISABLED
+            self.resize_btn["state"] = DISABLED
+            self.drift_btn["state"] = DISABLED
 
     def marge1_selected(self, event):
         self.marge_type[0] = self.marge1_cb.current()
