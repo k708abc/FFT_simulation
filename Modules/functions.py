@@ -273,11 +273,11 @@ class functions:
                 for i in self.processes[0][0]:
                     f.write(i.rec())
                 for i in self.processes[0][1]:
-                    f.write(i.rec() + "\n")
+                    f.write(i.rec())
                 f.write(
                     "Second image:"
                     + "\t"
-                    + "Type: "
+                    + "Components: "
                     + "\t"
                     + str(self.marge2_cb.get())
                     + "\t"
@@ -289,11 +289,11 @@ class functions:
                 for i in self.processes[1][0]:
                     f.write(i.rec())
                 for i in self.processes[1][1]:
-                    f.write(i.rec() + "\n")
+                    f.write(i.rec())
                 f.write(
                     "Total image:"
                     + "\t"
-                    + "Type: "
+                    + "Components: "
                     + "\t"
                     + str(self.marge_cb.get())
                     + "\t"
@@ -305,7 +305,7 @@ class functions:
                 for i in self.processes[2][0]:
                     f.write(i.rec())
                 for i in self.processes[2][1]:
-                    f.write(i.rec() + "\n")
+                    f.write(i.rec())
 
                 f.write("\n" + "FFT" + "\n")
                 f.write("Intensity:" + "\t" + str(self.method_fft_cb.get()) + "\n")
