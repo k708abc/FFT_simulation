@@ -218,6 +218,36 @@ class functions:
                 else:
                     self.images[i].unshow()
 
+        if self.show_bool_list[11].get():
+            FFTs = [
+                self.images[3].image,
+                self.images[7].image,
+                self.images[11].image,
+            ]
+            self.color_test(FFTs)
+
+    def color_test(self, images):
+        image1 = images[0]
+        h1, w1 = image1.shape[:2]
+        image2 = images[1]
+        h2, w2 = image2.shape[:2]
+        image3 = images[2]
+        h3, w3 = image3.shape[:2]
+
+        if h1 != h2 or h1 != h3:
+            pass
+        elif w1 != w2 or w1 != w3:
+            pass
+        else:
+            img = np.zeros((h1, w1, 3))
+            img[:, :, 0] = image1
+            img[:, :, 1] = image2
+            img[:, :, 2] = image3
+            self.images[12].image = img
+            self.images[12].form_mod()
+            self.images[12].shown = True
+            self.images[12].show()
+
     def normarize(self, image):
         val_min = np.min(image)
         val_max = np.max(image)
@@ -309,7 +339,9 @@ class functions:
 
                 f.write("\n" + "FFT" + "\n")
                 f.write("Intensity:" + "\t" + str(self.method_fft_cb.get()) + "\n")
-                f.write("Window:" + "\t" + str(self.window_cb.get()) + "\n")
+                f.write("Window:" + "\t" + str(self.window_cb.get()) + "\n\n")
+                f.write("Memo:" + "\n")
+                f.write(self.record_memo_entry.get("1.0", "end-1c"))
 
     def cont_change_show(self):
         if self.show_type == 0:

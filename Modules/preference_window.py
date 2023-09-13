@@ -2,6 +2,7 @@ from typing import Dict
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import *
+from tkinter import scrolledtext
 from Modules.image_process_class import (
     Plane_wave,
     Random_offset,
@@ -20,7 +21,7 @@ class Window(ttk.Frame):
     def __init__(self, master) -> None:
         super().__init__(master, padding=2)
         self.master = master
-        master.geometry("655x760")
+        master.geometry("655x820")
         master.title("Image tester")
         self.processes = [[[], []], [[], []], [[], []]]
         self.each_opened = False
@@ -40,8 +41,10 @@ class Window(ttk.Frame):
             "Total processed",
             "Total original FFT",
             "Total processsed FFT",
+            "coloured",
         ]
         self.images = [
+            MyImage(),
             MyImage(),
             MyImage(),
             MyImage(),
@@ -731,8 +734,12 @@ class Window(ttk.Frame):
             self.master,
             text="Record",
             command=self.record_clicked,
-            height=1,
+            height=5,
             width=15,
+        )
+        self.record_memo_label = tk.Label(self.master, text="Memo")
+        self.record_memo_entry = scrolledtext.ScrolledText(
+            self.master, width=53, height=1, font=("Helvetica", 10)
         )
 
     def create_layputs_form(self):
@@ -879,6 +886,8 @@ class Window(ttk.Frame):
         self.record_file_label.place(x=x_5 + 20, y=y_8)
         self.record_file_entry.place(x=x_7 - 20, y=y_8)
         self.record_btn.place(x=x_btn, y=y_8)
+        self.record_memo_label.place(x=x_1, y=y_9)
+        self.record_memo_entry.place(x=x_2, y=y_9)
 
     def wave_add_clicked(self):
         var = Plane_wave()

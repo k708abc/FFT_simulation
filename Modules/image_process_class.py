@@ -452,7 +452,6 @@ class MyImage:
             self.shown = False
 
     def form_mod(self):
-
         image_mod = (self.image) * 255
         image_mod = image_mod.astype(np.uint8)
         self.image_uint8 = image_mod
