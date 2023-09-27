@@ -423,11 +423,13 @@ class Window(ttk.Frame):
         if self.header_check_bln.get():
             for i in self.check_list:
                 for j in i:
-                    j.set(True)
+                    for k in j:
+                        k.set(True)
         else:
             for i in self.check_list:
                 for j in i:
-                    j.set(False)
+                    for k in j:
+                        k.set(False)
 
     def create_widgets_buttons(self):
         self.del_checked_btn = tk.Button(

@@ -8,6 +8,27 @@ class functions:
     def init_setting(self):
         pass
 
+    def mearge(self, im1, im2, type):
+        y1, x1 = im1.shape[:2]
+        y2, x2 = im2.shape[:2]
+        if x1 != x2 or y1 != y2:
+            xmax = max(x1, x2)
+            ymax = max(y1, y2)
+            base1 = np.ones((ymax, xmax))
+            base2 = np.ones((ymax, xmax))
+            base1[0:y1, 0:x1] = im1
+            base2[0:y2, 0:x2] = im2
+        else:
+            base1 = im1
+            base2 = im2
+        if type == 0:
+            im_ret = base1 + base2
+        elif type == 1:
+            im_ret = base1 - base2
+        elif type == 2:
+            im_ret = base1 * base2
+        return im_ret
+
     def image_formation(self):
         px = int(self.pix_x_entry.get())
         py = int(self.pix_y_entry.get())
@@ -15,14 +36,19 @@ class functions:
             marge_type = self.marge_type[i]
             marge_type_pro = self.marge_pro_type[i]
             if i in (0, 1):
-                image_rec = [np.ones((px, py))]
+                image_rec = [np.ones((py, px))]
             else:
+                image_rec = [
+                    self.mearge(self.images[1].image, self.images[5].image, marge_type)
+                ]
+                """
                 if marge_type == 0:
                     image_rec = [self.images[1].image + self.images[5].image]
                 elif marge_type == 1:
                     image_rec = [self.images[1].image - self.images[5].image]
                 elif marge_type == 2:
                     image_rec = [self.images[1].image * self.images[5].image]
+                """
             for k in self.processes[i][0]:
                 k.px = px
                 k.py = py
@@ -32,7 +58,7 @@ class functions:
             elif marge_type == 1:
                 image = -np.sum(image_rec, axis=0)
             elif marge_type == 2:
-                image = np.ones((px, py))
+                image = np.ones((py, px))
                 for img in image_rec:
                     image = image * img
             image_or = self.normarize(image)
@@ -265,8 +291,9 @@ class functions:
         file = self.record_file_entry.get()
         rec_name = folder + "\\" + file
         for var in self.images:
-            var.rec_name = rec_name
-            var.record()
+            if var.shown:
+                var.rec_name = rec_name
+                var.record()
 
         if self.show_type == 1:
             if len(self.image1) > 1:
