@@ -29,6 +29,32 @@ class functions:
             im_ret = base1 * base2
         return im_ret
 
+    def mearge_comp(self, images, type):
+        x = []
+        y = []
+        images_mod = []
+        for i in images:
+            y1, x1 = i.shape[:2]
+            x.append(x1)
+            y.append(y1)
+        xmax = max(x)
+        ymax = max(y)
+        for i in images:
+            y1, x1 = i.shape[:2]
+            base = np.ones((ymax, xmax))
+            base[0:y1, 0:x1] = i
+            images_mod.append(base)
+
+        if type == 0:
+            image = np.sum(images_mod, axis=0)
+        elif type == 1:
+            image = -np.sum(images_mod, axis=0)
+        elif type == 2:
+            image = np.ones((ymax, xmax))
+            for img in images_mod:
+                image = image * img
+        return image
+
     def image_formation(self):
         px = int(self.pix_x_entry.get())
         py = int(self.pix_y_entry.get())
@@ -41,30 +67,17 @@ class functions:
                 image_rec = [
                     self.mearge(self.images[1].image, self.images[5].image, marge_type)
                 ]
-                """
-                if marge_type == 0:
-                    image_rec = [self.images[1].image + self.images[5].image]
-                elif marge_type == 1:
-                    image_rec = [self.images[1].image - self.images[5].image]
-                elif marge_type == 2:
-                    image_rec = [self.images[1].image * self.images[5].image]
-                """
             for k in self.processes[i][0]:
                 k.px = px
                 k.py = py
                 image_rec.append(k.run_com())
-            if marge_type == 0:
-                image = np.sum(image_rec, axis=0)
-            elif marge_type == 1:
-                image = -np.sum(image_rec, axis=0)
-            elif marge_type == 2:
-                image = np.ones((py, px))
-                for img in image_rec:
-                    image = image * img
+
+            image = self.mearge_comp(image_rec, marge_type)
             image_or = self.normarize(image)
             self.images[4 * i].image = np.copy(image_or)
             self.images[4 * i].form_mod()
             #
+
             for k in self.processes[i][1]:
                 k.image = image
                 k.cal = marge_type_pro

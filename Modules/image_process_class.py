@@ -282,8 +282,7 @@ class Drift:
             return self.y
 
     def run_pro(self):
-        ps_x = len(self.image)
-        ps_y = len(self.image[0])
+        ps_y, ps_x = self.image.shape[:2]
         #
         v11 = 1 + self.x / 2 / ps_y / ps_y
         v12 = self.x / ps_y
