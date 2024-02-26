@@ -169,6 +169,90 @@ class Noise:
         return "Random_offset:" + "\n\t" + "Amplitude:" + "\t" + str(self.amp) + "\n"
 
 
+class Impurity:
+    name = "Impurity"
+    amp = None
+    pos_x = None
+    pos_y = None
+    sigma = None
+    params = ["Amp.", "pos_x", "pos_y", "sigma"]
+    image = None
+    cal = None
+
+    def rewrite(self, params):
+        self.amp = params[0]
+        self.pos_x = params[1]
+        self.pos_y = params[2]
+        self.sigma = params[3]
+
+    def getval(self, p_name):
+        if p_name == "Amp.":
+            return self.amp
+        if p_name == "pos_x":
+            return self.pos_x
+        if p_name == "pos_y":
+            return self.pos_y
+        if p_name == "sigma":
+            return self.sigma
+
+    def print_all(self):
+        print(self.name)
+        print("Amp.:" + str(self.amp))
+        print("pos_x:" + str(self.pos_x))
+        print("pos_y:" + str(self.pos_y))
+        print("sigma:" + str(self.sigma))
+
+    def gaussian_func(self, x, y):
+        exponent = -((x - self.pos_x) ** 2 + (y - self.pos_y) ** 2) / (
+            2 * pow(self.sigma, 2)
+        )
+        return np.exp(exponent)
+
+    def run_com(self):
+        X, Y = np.meshgrid(
+            np.linspace(0, self.px, self.px), np.linspace(0, self.py, self.py)
+        )
+        gauss = self.amp * self.gaussian_func(X, Y)
+        data = np.reshape(gauss, (self.py, self.px))
+        # data = data.T
+        return data
+
+    def run_pro(self):
+        self.px = len(self.image[1])
+        self.py = len(self.image[0])
+        data = self.run_com()
+        if self.cal == 0:
+            image_temp = self.image + data
+        elif self.cal == 1:
+            image_temp = self.image - data
+        elif self.cal == 2:
+            image_temp = self.image * data
+        else:
+            print("Error")
+        return image_temp
+
+    def rec(self):
+        return (
+            "Impurity:"
+            + "\n\t"
+            + "Amplitude:"
+            + "\t"
+            + str(self.amp)
+            + "\n\t"
+            + "Pos_x:"
+            + "\t"
+            + str(self.pos_x)
+            + "\n\t"
+            + "Pos_y:"
+            + "\t"
+            + str(self.pos_y)
+            + "\n\t"
+            + "Sigma:"
+            + "\t"
+            + str(self.sigma)
+        )
+
+
 class Smothing:
     name = "Smoothing"
     image = None

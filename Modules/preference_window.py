@@ -12,6 +12,7 @@ from Modules.image_process_class import (
     Rotation,
     Drift,
     MyImage,
+    Impurity,
 )
 
 
@@ -21,7 +22,7 @@ class Window(ttk.Frame):
     def __init__(self, master) -> None:
         super().__init__(master, padding=2)
         self.master = master
-        master.geometry("655x820")
+        master.geometry("655x850")
         master.title("Image tester")
         self.processes = [[[], []], [[], []], [[], []]]
         self.each_opened = False
@@ -510,6 +511,31 @@ class Window(ttk.Frame):
             height=1,
             width=15,
         )
+        #
+        self.impurity_label = tk.Label(self.master, text="Impurity")
+        self.impurity_amp_label = tk.Label(self.master, text="Amp.")
+        self.impurity_amp_entry = tk.Entry(self.master, width=6)
+        self.impurity_amp_entry.insert(tk.END, 1)
+
+        self.impurity_px_label = tk.Label(self.master, text="px")
+        self.impurity_px_entry = tk.Entry(self.master, width=6)
+        self.impurity_px_entry.insert(tk.END, 100)
+
+        self.impurity_py_label = tk.Label(self.master, text="py")
+        self.impurity_py_entry = tk.Entry(self.master, width=6)
+        self.impurity_py_entry.insert(tk.END, 100)
+
+        self.impurity_sigma_label = tk.Label(self.master, text="sigma")
+        self.impurity_sigma_entry = tk.Entry(self.master, width=6)
+        self.impurity_sigma_entry.insert(tk.END, 10)
+
+        self.impurity_btn = tk.Button(
+            self.master,
+            text="Add",
+            command=self.impurity_add_clicked,
+            height=1,
+            width=15,
+        )
 
     def create_widgets_image_form(self):
         self.pix_x_label = tk.Label(self.master, text="Pixels (x)")
@@ -787,6 +813,7 @@ class Window(ttk.Frame):
         y_3 = y_2 + 30
         y_4 = y_3 + 30
         y_5 = y_4 + 30
+        y_6 = y_5 + 30
         x_1 = 20
         x_2 = 120
         x_3 = 170
@@ -822,9 +849,19 @@ class Window(ttk.Frame):
         self.noise_amp_entry.place(x=x_3, y=y_5)
         self.noise_btn.place(x=x_btn, y=y_5)
         #
+        self.impurity_label.place(x=x_1, y=y_6)
+        self.impurity_amp_label.place(x=x_2, y=y_6)
+        self.impurity_amp_entry.place(x=x_3, y=y_6)
+        self.impurity_px_label.place(x=x_4, y=y_6)
+        self.impurity_px_entry.place(x=x_5, y=y_6)
+        self.impurity_py_label.place(x=x_6, y=y_6)
+        self.impurity_py_entry.place(x=x_7, y=y_6)
+        self.impurity_sigma_label.place(x=x_8, y=y_6)
+        self.impurity_sigma_entry.place(x=x_9, y=y_6)
+        self.impurity_btn.place(x=x_btn, y=y_6)
 
     def create_layouts_process(self):
-        y_1 = 520
+        y_1 = 550
         y_2 = y_1 + 30
         y_3 = y_2 + 30
         y_4 = y_3 + 30
@@ -909,6 +946,15 @@ class Window(ttk.Frame):
     def noise_add_clicked(self):
         var = Noise()
         var.amp = float(self.noise_amp_entry.get())
+        self.processes[self.current_select][self.current2_select].append(var)
+        self.update_process_w()
+
+    def impurity_add_clicked(self):
+        var = Impurity()
+        var.amp = float(self.impurity_amp_entry.get())
+        var.pos_x = int(self.impurity_px_entry.get())
+        var.pos_y = int(self.impurity_py_entry.get())
+        var.sigma = int(self.impurity_sigma_entry.get())
         self.processes[self.current_select][self.current2_select].append(var)
         self.update_process_w()
 
