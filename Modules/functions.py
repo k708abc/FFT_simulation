@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import os
-from Modules.image_process_class import FFT
+from .image_process_class import FFT
 
 
 class functions:

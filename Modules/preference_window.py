@@ -3,7 +3,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import *
 from tkinter import scrolledtext
-from Modules.image_process_class import (
+from .image_process_class import (
     Plane_wave,
     Random_offset,
     Noise,

@@ -431,17 +431,17 @@ class FFT:
     def apply_window(self, image):
         im_copy = np.copy(image)
         if self.window == "Hann":
-            wfunc = signal.hann(im_copy.shape[0])
+            wfunc = signal.windows.hann(im_copy.shape[0])
             wfunc2 = signal.hann(im_copy.shape[1])
         elif self.window == "Hamming":
-            wfunc = signal.hamming(im_copy.shape[0])
-            wfunc2 = signal.hamming(im_copy.shape[1])
+            wfunc = signal.windows.hamming(im_copy.shape[0])
+            wfunc2 = signal.windows.hamming(im_copy.shape[1])
         elif self.window == "Blackman":
-            wfunc = signal.blackman(im_copy.shape[0])
-            wfunc2 = signal.blackman(im_copy.shape[1])
+            wfunc = signal.windows.blackman(im_copy.shape[0])
+            wfunc2 = signal.windows.blackman(im_copy.shape[1])
         else:
-            wfunc = signal.boxcar(im_copy.shape[0])
-            wfunc2 = signal.boxcar(im_copy.shape[1])
+            wfunc = signal.windows.boxcar(im_copy.shape[0])
+            wfunc2 = signal.windows.boxcar(im_copy.shape[1])
         for i in range(im_copy.shape[0]):
             for k in range(im_copy.shape[1]):
                 im_copy[i][k] = im_copy[i][k] * wfunc[i] * wfunc2[k]
