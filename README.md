@@ -4,3 +4,4 @@ The real images can be constructed by several components of waves, and each comp
 In addition, additional processes (such as smoothing, random noise, etc.) can be applied on the images.
 Two images can be further mearged to form a image.
 All of the images can be converted by Fourier transormation.
+
