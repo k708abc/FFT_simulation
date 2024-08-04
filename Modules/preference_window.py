@@ -15,7 +15,6 @@ from .image_process_class import (
     Impurity,
 )
 
-
 class Window(ttk.Frame):
     padWE: Dict = dict(sticky=(tk.W, tk.E), padx=15, pady=2)
 
@@ -564,7 +563,7 @@ class Window(ttk.Frame):
         )
         #
         self.uni_all_bln = tk.BooleanVar()
-        self.uni_all_bln.set(False)
+        self.uni_all_bln.set(True)
         self.uni_all_chk = tk.Checkbutton(
             self.master,
             width=7,

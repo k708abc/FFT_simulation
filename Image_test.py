@@ -2,13 +2,14 @@ import tkinter as tk
 from Modules.preference_window import Window
 from Modules.functions import functions
 
+
 class App(Window, functions):
     def __init__(self, master):
         super().__init__(master)
 
 
 if __name__ == "__main__":
-    print("Last update: 1st Aug. 2024 by N. Kawakami")
+    print("Last update: 4th Aug. 2024 by N. Kawakami")
     application = tk.Tk()
     app = App(application)
     app.run()
