@@ -432,7 +432,7 @@ class FFT:
         im_copy = np.copy(image)
         if self.window == "Hann":
             wfunc = signal.windows.hann(im_copy.shape[0])
-            wfunc2 = signal.hann(im_copy.shape[1])
+            wfunc2 = signal.windows.hann(im_copy.shape[1])
         elif self.window == "Hamming":
             wfunc = signal.windows.hamming(im_copy.shape[0])
             wfunc2 = signal.windows.hamming(im_copy.shape[1])
